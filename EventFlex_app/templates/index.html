@@ -1,0 +1,291 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventFlex - On-Demand Platform for Event Staffing</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <i class="fas fa-calendar-check"></i>
+                <span>EventFlex</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li id="nav-login-item"><a href="{% url 'login_page' %}" class="btn-outline">Login</a></li>
+                <li id="nav-signup-item"><a href="{% url 'signup_page' %}" class="btn-primary">Sign Up</a></li>
+                <li id="nav-user-item" style="display: none;">
+                    <div class="nav-user-profile">
+                        <img id="nav-user-avatar" src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" alt="Profile">
+                        <span id="nav-user-name">User</span>
+                    </div>
+                </li>
+                <li id="nav-dashboard-item" style="display: none;">
+                    <a href="#" id="nav-dashboard-link" class="btn-primary">Dashboard</a>
+                </li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">Find Trusted Event Staff in Minutes</h1>
+                <p class="hero-subtitle">India's #1 On-Demand Platform connecting Event Organizers with Pre-Vetted, Professional Gig Workers</p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <h3>{{ total_professionals|default:"10,000" }}+</h3>
+                        <p>Verified Professionals</p>
+                    </div>
+                    <div class="stat">
+                        <h3>{{ total_events|default:"5,000" }}+</h3>
+                        <p>Events Completed</p>
+                    </div>
+                    <div class="stat">
+                        <h3>{{ success_rate|default:"98" }}%</h3>
+                        <p>Success Rate</p>
+                    </div>
+                </div>
+                <div class="hero-cta">
+                    <a href="{% url 'signup_page' %}?type=organizer" class="btn-large btn-primary">
+                        <i class="fas fa-briefcase"></i> I'm an Event Organizer
+                    </a>
+                    <a href="{% url 'signup_page' %}?type=staff" class="btn-large btn-secondary">
+                        <i class="fas fa-user-tie"></i> I'm Looking for Gigs
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="hero-card card-1">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Verified Profiles</span>
+                </div>
+                <div class="hero-card card-2">
+                    <i class="fas fa-bolt"></i>
+                    <span>Instant Hiring</span>
+                </div>
+                <div class="hero-card card-3">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Secure Payments</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="section-title">Why Choose EventFlex?</h2>
+            <p class="section-subtitle">Solving India's Event Staffing Crisis with Trust, Speed & Efficiency</p>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <h3>Pre-Vetted Professionals</h3>
+                    <p>Every staff member is verified through KYC, video intro, and skill assessments</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Smart Matching Algorithm</h3>
+                    <p>AI-powered matching based on skills, location, ratings, and past performance</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3>Secure Escrow Payments</h3>
+                    <p>Protected payments ensure staff get paid on time, every time</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <h3>QR Code Check-In</h3>
+                    <p>Geo-fenced attendance tracking and real-time work hour monitoring</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3>Rating & Reputation System</h3>
+                    <p>Build verifiable track records with badges: Rising Star, Pro, Elite</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-comment-dots"></i>
+                    </div>
+                    <h3>In-App Communication</h3>
+                    <p>Secure chat between organizers and staff for seamless coordination</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section id="how-it-works" class="how-it-works">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+            
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="organizer">For Event Organizers</button>
+                <button class="tab-btn" data-tab="staff">For Event Pros</button>
+            </div>
+            
+            <div class="tab-content active" id="organizer">
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Post Your Job</h3>
+                            <p>Describe the role, skills needed, date, time, location, and pay rate</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Discover Talent</h3>
+                            <p>Browse verified profiles, filter by skills, ratings, and experience</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Hire Instantly</h3>
+                            <p>Select candidates and confirm booking with secure escrow payment</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Track & Pay</h3>
+                            <p>Monitor attendance via QR check-in, rate performance, release payment</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="staff">
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Create Your Profile</h3>
+                            <p>Add skills, experience, video intro, and complete KYC verification</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Browse Opportunities</h3>
+                            <p>Discover jobs matching your skills with transparent pay and details</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Apply & Get Hired</h3>
+                            <p>Apply to jobs, communicate with organizers, confirm booking</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>Work & Earn</h3>
+                            <p>Check-in via QR, complete the job, get paid instantly to your wallet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Transform Your Event Experience?</h2>
+            <p>Join {{ total_professionals|default:"10,000" }}+ organizers and professionals already using EventFlex</p>
+            <div class="cta-buttons">
+                <a href="{% url 'signup_page' %}" class="btn-large btn-primary">Get Started Free</a>
+                <a href="#features" class="btn-large btn-outline">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h3><i class="fas fa-calendar-check"></i> EventFlex</h3>
+                    <p>India's premier platform connecting event organizers with verified professionals.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>For Organizers</h4>
+                    <ul>
+                        <li><a href="{% url 'organizer_dashboard' %}">Post a Job</a></li>
+                        <li><a href="{% url 'organizer_dashboard' %}">Find Talent</a></li>
+                        <li><a href="#">Pricing</a></li>
+                        <li><a href="#">Success Stories</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>For Event Pros</h4>
+                    <ul>
+                        <li><a href="{% url 'staff_portal' %}">Find Jobs</a></li>
+                        <li><a href="{% url 'staff_portal' %}">Build Profile</a></li>
+                        <li><a href="#">Verification</a></li>
+                        <li><a href="#">FAQs</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2025 EventFlex. All rights reserved. | Built with ❤️ for India's Gig Economy</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

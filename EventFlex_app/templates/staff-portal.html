@@ -1,0 +1,581 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Pro Portal - EventFlex</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-page" data-requires-auth="true" data-user-type="staff">
+    <!-- Dashboard Navigation -->
+    <nav class="dashboard-nav">
+        <div class="nav-brand">
+            <i class="fas fa-calendar-check"></i>
+            <span>EventFlex</span>
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/#features">Features</a>
+            <a href="/#how-it-works">How It Works</a>
+        </div>
+        <div class="nav-user">
+            <span class="nav-link-text">Login</span>
+            <a href="{% url 'signup_page' %}" class="btn-primary-small">Sign Up</a>
+            <div class="user-profile">
+                <img src="https://ui-avatars.com/api/?name=Test&background=10b981&color=fff" alt="Profile" id="user-avatar">
+                <a href="#profile"><span id="user-name-display">Test</span></a> 
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="active">
+                    <a href="#dashboard"><i class="fas fa-home"></i> Dashboard</a>
+                </li>
+                <li>
+                    <a href="#discover-jobs"><i class="fas fa-search"></i> Find Jobs</a>
+                </li>
+                <li>
+                    <a href="#my-applications"><i class="fas fa-file-alt"></i> My Applications</a>
+                </li>
+                <li>
+                    <a href="#my-bookings"><i class="fas fa-calendar-check"></i> My Bookings</a>
+                </li>
+                <li>
+                    <a href="#wallet"><i class="fas fa-wallet"></i> Wallet</a>
+                </li>
+                <li>
+                    <a href="#messages"><i class="fas fa-comments"></i> Messages</a>
+                </li>
+                <li>
+                    <a href="#profile"><i class="fas fa-user"></i> My Profile</a>
+                </li>
+                <li>
+                    <a href="{% url 'index' %}" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Dashboard Overview -->
+            <section id="dashboard" class="dashboard-section active">
+                <h1 id="welcome-message">Welcome back! 👋</h1>
+                <p class="subtitle">You're doing great! Keep up the excellent work.</p>
+
+                <!-- Verification Alert -->
+                <div class="alert alert-info" id="verification-alert" style="display: none;">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Complete your profile!</strong> Add KYC and video verification to get more job opportunities.
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-events-completed">0</h3>
+                            <p>Events Completed</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-rating">0.0</h3>
+                            <p>Average Rating</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-upcoming">0</h3>
+                            <p>Upcoming Events</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dashboard Grid -->
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h2>Upcoming Events</h2>
+                            <a href="#my-bookings" class="view-all">View All</a>
+                        </div>
+                        <div class="event-list" id="staff-upcoming-events">
+                            <p class="empty-state">Loading upcoming events...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reputation Section -->
+                <div class="reputation-card">
+                    <h2>Your Reputation</h2>
+                    <div class="reputation-content">
+                        <div class="reputation-badge">
+                            <div class="badge-display elite">
+                                <i class="fas fa-crown"></i>
+                                <span>Elite Pro</span>
+                            </div>
+                            <p>You're in the top 5% of Event Pros!</p>
+                        </div>
+                        <div class="reputation-stats">
+                            <div class="rep-stat">
+                                <h3>4.9/5.0</h3>
+                                <p>Average Rating</p>
+                                <div class="stars">★★★★★</div>
+                            </div>
+                            <div class="rep-stat">
+                                <h3>24</h3>
+                                <p>Total Reviews</p>
+                            </div>
+                            <div class="rep-stat">
+                                <h3>98%</h3>
+                                <p>Attendance Rate</p>
+                            </div>
+                        </div>
+                        <div class="recent-reviews">
+                            <h3>Recent Reviews</h3>
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <span class="stars">★★★★★</span>
+                                    <span class="date">2 days ago</span>
+                                </div>
+                                <p>"Priya was exceptional! Professional, punctual, and went above and beyond."</p>
+                                <span class="reviewer">- TechEvents India</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Discover Jobs Section -->
+            <section id="discover-jobs" class="dashboard-section">
+                <h1>Find Jobs</h1>
+                <p class="subtitle">Discover opportunities that match your skills</p>
+
+                <div class="search-filters">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="job-search-input" placeholder="Search jobs by title, location, or organizer...">
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-input-wrapper">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <input type="text" id="filter-location" placeholder="Enter location (e.g., Mumbai, Delhi, Bangalore)">
+                        </div>
+                        <select id="filter-event-type">
+                            <option value="">All Event Types</option>
+                            <option value="conference">Conference</option>
+                            <option value="wedding">Wedding</option>
+                            <option value="corporate">Corporate</option>
+                            <option value="festival">Festival</option>
+                            <option value="concert">Concert</option>
+                            <option value="exhibition">Exhibition</option>
+                        </select>
+                        <select id="filter-pay-range">
+                            <option value="">Pay Range</option>
+                            <option value="0-2000">Up to ₹2000</option>
+                            <option value="2000-3000">₹2000-3000</option>
+                            <option value="3000-5000">₹3000-5000</option>
+                            <option value="5000+">₹5000+</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="jobs-list" id="jobListings">
+                    <p class="empty-state">Loading available jobs...</p>
+                </div>
+            </section>
+
+            <!-- My Applications Section -->
+            <section id="my-applications" class="dashboard-section">
+                <h1>My Applications</h1>
+                <div class="tabs-secondary">
+                    <button class="tab-btn-secondary active" data-tab="pending">Pending <span id="pending-count">(0)</span></button>
+                    <button class="tab-btn-secondary" data-tab="accepted">Accepted <span id="accepted-count">(0)</span></button>
+                    <button class="tab-btn-secondary" data-tab="rejected">Rejected <span id="rejected-count">(0)</span></button>
+                </div>
+
+                <div class="applications-list" data-tab-content="pending" id="pending-applications">
+                    <p class="empty-state">Loading applications...</p>
+                </div>
+
+                <div class="applications-list" data-tab-content="accepted" id="accepted-applications" hidden>
+                    <p class="empty-state">Loading applications...</p>
+                </div>
+
+                <div class="applications-list" data-tab-content="rejected" id="rejected-applications" hidden>
+                    <p class="empty-state">Loading applications...</p>
+                </div>
+            </section>
+
+            <!-- My Bookings Section -->
+            <section id="my-bookings" class="dashboard-section">
+                <h1>My Bookings</h1>
+                <div class="tabs-secondary">
+                    <button class="tab-btn-secondary active" data-tab="upcoming">Upcoming <span id="upcoming-bookings-count">(0)</span></button>
+                    <button class="tab-btn-secondary" data-tab="completed">Completed <span id="completed-bookings-count">(0)</span></button>
+                    <button class="tab-btn-secondary" data-tab="cancelled">Cancelled <span id="cancelled-bookings-count">(0)</span></button>
+                </div>
+
+                <div class="bookings-list" data-tab-content="upcoming" id="upcoming-bookings">
+                    <p class="empty-state">Loading bookings...</p>
+                </div>
+
+                <div class="bookings-list" data-tab-content="completed" id="completed-bookings" hidden>
+                    <p class="empty-state">Loading bookings...</p>
+                </div>
+
+                <div class="bookings-list" data-tab-content="cancelled" id="cancelled-bookings" hidden>
+                    <p class="empty-state">No cancelled bookings.</p>
+                </div>
+            </section>
+
+            <!-- Wallet Section -->
+            <section id="wallet" class="dashboard-section">
+                <h1>My Wallet</h1>
+                
+                <div class="wallet-overview">
+                    <div class="wallet-card primary">
+                        <h3>Available Balance</h3>
+                        <p class="amount" id="available-balance">₹0</p>
+                        <button class="btn-primary" onclick="showWithdrawModal()">Withdraw to Bank</button>
+                    </div>
+                    <div class="wallet-card">
+                        <h3>Pending Payments</h3>
+                        <p class="amount" id="pending-amount">₹0</p>
+                        <p class="sub-text" id="pending-text">From 0 completed events</p>
+                    </div>
+                </div>
+
+                <div class="earnings-chart-card">
+                    <h2>Earnings Overview</h2>
+                    <div class="chart-placeholder">
+                        <div class="chart-bars" id="earnings-chart">
+                            <!-- Chart bars will be dynamically generated -->
+                        </div>
+                        <div class="chart-labels" id="chart-labels">
+                            <!-- Month labels will be dynamically generated -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="transactions-card">
+                    <h2>Transaction History</h2>
+                    <table class="transactions-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Event</th>
+                                <th>Organizer</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactions-list">
+                            <!-- Transactions will be dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Messages Section -->
+            <section id="messages" class="dashboard-section">
+                <h1>Messages</h1>
+                <div class="messages-container">
+                    <div class="messages-sidebar">
+                        <div class="message-search">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search conversations...">
+                        </div>
+                        <div class="conversation-list">
+                            <div class="conversation-item active">
+                                <img src="https://ui-avatars.com/api/?name=TechEvents+India&background=6366f1&color=fff" alt="TechEvents India">
+                                <div class="conversation-info">
+                                    <h4>TechEvents India</h4>
+                                    <p>Looking forward to the event...</p>
+                                </div>
+                                <span class="time">5m</span>
+                            </div>
+                            <div class="conversation-item">
+                                <img src="https://ui-avatars.com/api/?name=Corporate+Solutions&background=10b981&color=fff" alt="Corporate Solutions">
+                                <div class="conversation-info">
+                                    <h4>Corporate Solutions</h4>
+                                    <p>Please arrive 30 minutes early</p>
+                                </div>
+                                <span class="time">2h</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-area">
+                        <div class="chat-header">
+                            <img src="https://ui-avatars.com/api/?name=TechEvents+India&background=6366f1&color=fff" alt="TechEvents India">
+                            <div>
+                                <h4>TechEvents India</h4>
+                                <p>Event Organizer</p>
+                            </div>
+                        </div>
+                        <div class="chat-messages">
+                            <div class="message received">
+                                <p>Hi Priya! Welcome to the team. The event is on Nov 15th.</p>
+                                <span class="time">Yesterday</span>
+                            </div>
+                            <div class="message sent">
+                                <p>Thank you! I'm excited to be part of it.</p>
+                                <span class="time">Yesterday</span>
+                            </div>
+                            <div class="message received">
+                                <p>Great! Looking forward to working with you.</p>
+                                <span class="time">5 minutes ago</span>
+                            </div>
+                        </div>
+                        <div class="chat-input">
+                            <input type="text" placeholder="Type a message...">
+                            <button class="btn-primary"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile Section -->
+            <section id="profile" class="dashboard-section">
+                <h1>My Profile</h1>
+                
+                <div class="profile-completion">
+                    <div class="completion-header">
+                        <h3>Profile Completion</h3>
+                        <span class="completion-percentage">85%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress" style="width: 85%"></div>
+                    </div>
+                    <p>Complete your profile to get more job opportunities!</p>
+                </div>
+
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <img src="https://ui-avatars.com/api/?name=Priya+Kumar&background=6366f1&color=fff" alt="Profile" class="profile-image-large">
+                        <div class="profile-header-info">
+                            <h2>Priya Kumar</h2>
+                            <p class="profile-role">Event Coordinator</p>
+                            <div class="profile-badges">
+                                <span class="badge-elite"><i class="fas fa-crown"></i> Elite Pro</span>
+                                <span class="badge-verified"><i class="fas fa-check-circle"></i> KYC Verified</span>
+                                <span class="badge-verified"><i class="fas fa-video"></i> Video Verified</span>
+                            </div>
+                            <button class="btn-outline" onclick="showPhotoModal()">Change Photo</button>
+                            <button class="btn-primary" onclick="showVideoModal()">Upload Video Intro</button>
+                        </div>
+                    </div>
+
+                    <form class="profile-form" onsubmit="handleProfileSave(event)" id="profile-form">
+                        <h3>Personal Information</h3>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Full Name *</label>
+                                <input type="text" name="username" value="Priya Kumar">
+                            </div>
+                            <div class="form-group">
+                                <label>Phone Number *</label>
+                                <input type="tel" name="phone" value="+91 98765 43210">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email *</label>
+                                <input type="email" name="email" value="priya.kumar@email.com" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Date of Birth</label>
+                                <input type="date" name="dob" value="1998-05-15">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>City *</label>
+                            <select name="city">
+                                <option value="mumbai" selected>Mumbai</option>
+                                <option value="delhi">Delhi</option>
+                                <option value="bangalore">Bangalore</option>
+                                <option value="pune">Pune</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Bio</label>
+                            <textarea name="bio" rows="4">Experienced event coordinator with 3+ years in the industry. Passionate about creating memorable experiences and skilled in managing large-scale events.</textarea>
+                        </div>
+
+                        <h3>Professional Details</h3>
+                        <div class="form-group">
+                            <label>Primary Role *</label>
+                            <select>
+                                <option value="coordinator" selected>Event Coordinator</option>
+                                <option value="registration">Registration Staff</option>
+                                <option value="hospitality">Hospitality Staff</option>
+                                <option value="technical">Technical Support</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Skills *</label>
+                            <div class="skill-tags">
+                                <span class="skill-tag">Event Management <i class="fas fa-times"></i></span>
+                                <span class="skill-tag">Coordination <i class="fas fa-times"></i></span>
+                                <span class="skill-tag">Leadership <i class="fas fa-times"></i></span>
+                                <span class="skill-tag">Communication <i class="fas fa-times"></i></span>
+                                <input type="text" id="skillInput" placeholder="Add more skills...">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Years of Experience</label>
+                                <select>
+                                    <option value="0-1">Less than 1 year</option>
+                                    <option value="1-2">1-2 years</option>
+                                    <option value="2-5" selected>2-5 years</option>
+                                    <option value="5+">5+ years</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Hourly Rate</label>
+                                <input type="number" value="300" placeholder="₹ per hour">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Languages Spoken</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" checked> Hindi</label>
+                                <label><input type="checkbox" checked> English</label>
+                                <label><input type="checkbox"> Marathi</label>
+                                <label><input type="checkbox"> Tamil</label>
+                            </div>
+                        </div>
+
+                        <h3>Verification</h3>
+                        <div class="verification-status">
+                            <div class="verification-item completed">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <h4>KYC Verification</h4>
+                                    <p>Verified on Oct 15, 2025</p>
+                                </div>
+                            </div>
+                            <div class="verification-item completed">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <h4>Video Introduction</h4>
+                                    <p>Uploaded on Oct 20, 2025</p>
+                                </div>
+                            </div>
+                            <div class="verification-item pending">
+                                <i class="fas fa-clock"></i>
+                                <div>
+                                    <h4>Police Verification</h4>
+                                    <p>Optional - Increases trust</p>
+                                </div>
+                                <button class="btn-outline btn-sm">Start Verification</button>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-outline">Cancel</button>
+                            <button type="submit" class="btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- QR Code Modal -->
+    <div id="qr-modal" class="modal" style="display: none;">
+        <div class="modal-content qr-modal-content">
+            <span class="close-modal" onclick="closeQRModal()">&times;</span>
+            <h2>Event Check-in QR Code</h2>
+            <p class="qr-instructions">Show this QR code at the event check-in</p>
+            <div id="qr-code-container"></div>
+            <div class="qr-booking-info">
+                <h3 id="qr-event-title"></h3>
+                <p id="qr-event-details"></p>
+            </div>
+            <button class="btn-primary" onclick="closeQRModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- Withdraw Modal -->
+    <div id="withdraw-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeWithdrawModal()">&times;</span>
+            <h2>Withdraw to Bank</h2>
+            <form onsubmit="handleWithdraw(event)">
+                <div class="form-group">
+                    <label>Available Balance</label>
+                    <input type="text" id="withdraw-balance" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Withdrawal Amount</label>
+                    <input type="number" id="withdraw-amount" placeholder="Enter amount" required min="1">
+                </div>
+                <div class="form-group">
+                    <label>Bank Account (Last 4 digits)</label>
+                    <input type="text" value="****1234" readonly>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-outline" onclick="closeWithdrawModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Confirm Withdrawal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Photo Modal -->
+    <div id="photo-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closePhotoModal()">&times;</span>
+            <h2>Change Profile Photo</h2>
+            <form onsubmit="handlePhotoUpload(event)">
+                <div class="form-group">
+                    <input type="file" id="photo-input" accept="image/*" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-outline" onclick="closePhotoModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Upload Photo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Upload Video Modal -->
+    <div id="video-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeVideoModal()">&times;</span>
+            <h2>Upload Video Introduction</h2>
+            <p>Upload a short video (max 2 minutes) introducing yourself</p>
+            <form onsubmit="handleVideoUpload(event)">
+                <div class="form-group">
+                    <input type="file" id="video-input" accept="video/*" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-outline" onclick="closeVideoModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Upload Video</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

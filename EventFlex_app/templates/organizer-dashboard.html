@@ -1,0 +1,596 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Organizer Dashboard - EventFlex</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="dashboard-page" data-requires-auth="true" data-user-type="organizer">
+    <!-- Dashboard Navigation -->
+    <nav class="dashboard-nav">
+        <div class="nav-brand">
+            <i class="fas fa-calendar-check"></i>
+            <span>EventFlex</span>
+        </div>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/#features">Features</a>
+            <a href="/#how-it-works">How It Works</a>
+        </div>
+        <div class="nav-user">
+            <span class="nav-link-text">Login</span>
+            <a href="{% url 'signup_page' %}" class="btn-primary-small">Sign Up</a>
+            <div class="user-profile">
+                <img src="https://ui-avatars.com/api/?name=Test&background=6366f1&color=fff" alt="Profile" id="user-avatar">
+                <span id="user-name-display">Test</span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <ul class="sidebar-menu">
+                <li class="active">
+                    <a href="#dashboard"><i class="fas fa-home"></i> Dashboard</a>
+                </li>
+                <li>
+                    <a href="#post-job"><i class="fas fa-plus-circle"></i> Post a Job</a>
+                </li>
+                <li>
+                    <a href="#discover"><i class="fas fa-search"></i> Discover Talent</a>
+                </li>
+                <li>
+                    <a href="#my-jobs"><i class="fas fa-briefcase"></i> My Jobs</a>
+                </li>
+                <li>
+                    <a href="#payments"><i class="fas fa-wallet"></i> Payments</a>
+                </li>
+                <li>
+                    <a href="#messages"><i class="fas fa-comments"></i> Messages</a>
+                </li>
+                <li>
+                    <a href="#profile"><i class="fas fa-user"></i> Profile</a>
+                </li>
+                <li>
+                    <a href="{% url 'index' %}" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Dashboard Overview -->
+            <section id="dashboard" class="dashboard-section active">
+                <h1>Welcome back! 👋</h1>
+                <p class="subtitle">Here's what's happening with your events today</p>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-active-jobs">0</h3>
+                            <p>Active Jobs</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-hired-staff">0</h3>
+                            <p>Hired Staff</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-upcoming-events">0</h3>
+                            <p>Upcoming Events</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="stat-total-spent">₹0</h3>
+                            <p>Total Spent</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h2>Upcoming Events</h2>
+                            <a href="#my-jobs" class="view-all">View All</a>
+                        </div>
+                        <div class="event-list" id="upcoming-events-list">
+                            <p class="empty-state">Loading upcoming events...</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h2>Recent Applications</h2>
+                            <a href="#discover" class="view-all">View All</a>
+                        </div>
+                        <div class="application-list" id="recent-applications-list">
+                            <p class="empty-state">Loading applications...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Post a Job Section -->
+            <section id="post-job" class="dashboard-section">
+                <h1>Post a New Job</h1>
+                <p class="subtitle">Fill in the details to find the perfect staff for your event</p>
+
+                <div class="form-card">
+                    <form id="jobPostForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Event Title *</label>
+                                <input type="text" name="title" placeholder="e.g., Tech Conference 2025" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Event Type *</label>
+                                <select name="event_type" required>
+                                    <option value="">Select event type</option>
+                                    <option value="conference">Conference</option>
+                                    <option value="wedding">Wedding</option>
+                                    <option value="corporate">Corporate Event</option>
+                                    <option value="festival">Festival</option>
+                                    <option value="concert">Concert</option>
+                                    <option value="exhibition">Exhibition</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Role/Position *</label>
+                                <input type="text" name="role" placeholder="e.g., Registration Desk Staff" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Number of Staff Needed *</label>
+                                <input type="number" name="number_of_staff" placeholder="e.g., 5" min="1" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Skills Required</label>
+                            <div class="skill-tags">
+                                <span class="skill-tag">Communication <i class="fas fa-times"></i></span>
+                                <span class="skill-tag">Customer Service <i class="fas fa-times"></i></span>
+                                <input type="text" id="skillInput" placeholder="Add skills...">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Event Date *</label>
+                                <input type="date" name="date" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Start Time *</label>
+                                <input type="time" name="start_time" required>
+                            </div>
+                            <div class="form-group">
+                                <label>End Time *</label>
+                                <input type="time" name="end_time" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Location *</label>
+                            <div class="location-input-wrapper">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <input type="text" name="location" placeholder="Enter city or venue address (e.g., Mumbai, Bangalore Convention Center)" required>
+                            </div>
+                            <small class="form-hint">Enter the city or full venue address where the event will take place</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Pay Rate (per person) *</label>
+                                <input type="number" name="pay_rate" placeholder="₹ 2000" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Payment Type *</label>
+                                <select name="payment_type" required>
+                                    <option value="hourly">Per Hour</option>
+                                    <option value="daily">Per Day</option>
+                                    <option value="event">Per Event</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Job Description *</label>
+                            <textarea name="description" rows="5" placeholder="Describe the role, responsibilities, and requirements..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Requirements & Preferences</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" name="requirements" value="experience"> Experience Required (1+ years)</label>
+                                <label><input type="checkbox" name="requirements" value="kyc"> KYC Verified Only</label>
+                                <label><input type="checkbox" name="requirements" value="video"> Video Intro Required</label>
+                                <label><input type="checkbox" name="requirements" value="badge"> Elite/Pro Badge Preferred</label>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn-outline">Save as Draft</button>
+                            <button type="submit" class="btn-primary">Post Job</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Discover Talent Section -->
+            <section id="discover" class="dashboard-section">
+                <h1>Discover Talent</h1>
+                <p class="subtitle">Find pre-vetted professionals for your events</p>
+
+                <div class="search-filters">
+                    <div class="search-bar">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="talent-search-input" placeholder="Search by name, skills, or location...">
+                    </div>
+                    <div class="filter-group">
+                        <div class="filter-input-wrapper">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <input type="text" id="filter-talent-location" placeholder="Enter location">
+                        </div>
+                        <select id="filter-talent-skills">
+                            <option value="">All Skills</option>
+                            <option value="coordination">Event Coordination</option>
+                            <option value="registration">Registration</option>
+                            <option value="hospitality">Hospitality</option>
+                            <option value="tech">Technical Support</option>
+                        </select>
+                        <select id="filter-talent-rating">
+                            <option value="">All Ratings</option>
+                            <option value="5">5 Stars</option>
+                            <option value="4">4+ Stars</option>
+                            <option value="3">3+ Stars</option>
+                        </select>
+                        <select id="filter-talent-badge">
+                            <option value="">All Badges</option>
+                            <option value="Elite Pro">Elite Pro</option>
+                            <option value="Pro">Pro</option>
+                            <option value="Rising Star">Rising Star</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="talent-grid" id="talent-grid-organizer">
+                    <p class="empty-state">Loading talent profiles...</p>
+                </div>
+            </section>
+
+            <!-- My Jobs Section -->
+            <section id="my-jobs" class="dashboard-section">
+                <h1>My Jobs</h1>
+                <div class="tabs-secondary">
+                    <button class="tab-btn-secondary active" data-tab="active-jobs">Active</button>
+                    <button class="tab-btn-secondary" data-tab="completed-jobs">Completed</button>
+                    <button class="tab-btn-secondary" data-tab="draft-jobs">Drafts</button>
+                </div>
+
+                <div class="jobs-list" data-tab-content="active-jobs">
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div>
+                                <h3>Tech Conference 2025</h3>
+                                <p><i class="fas fa-map-marker-alt"></i> Mumbai Convention Center • Nov 15, 2025</p>
+                            </div>
+                            <span class="status-badge confirmed">Active</span>
+                        </div>
+                        <div class="job-details">
+                            <div class="job-stat">
+                                <span class="label">Staff Hired:</span>
+                                <span class="value">12/12</span>
+                            </div>
+                            <div class="job-stat">
+                                <span class="label">Budget:</span>
+                                <span class="value">₹36,000</span>
+                            </div>
+                            <div class="job-stat">
+                                <span class="label">Applications:</span>
+                                <span class="value">28</span>
+                            </div>
+                        </div>
+                        <div class="job-actions">
+                            <button class="btn-outline">View Details</button>
+                            <button class="btn-outline">Manage Staff</button>
+                            <button class="btn-primary" data-toast="Attendance tracker is live. Share the QR with your team.">Track Attendance</button>
+                        </div>
+                    </div>
+
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div>
+                                <h3>Wedding Reception</h3>
+                                <p><i class="fas fa-map-marker-alt"></i> Delhi Banquet Hall • Nov 25, 2025</p>
+                            </div>
+                            <span class="status-badge pending">Hiring</span>
+                        </div>
+                        <div class="job-details">
+                            <div class="job-stat">
+                                <span class="label">Staff Hired:</span>
+                                <span class="value">8/10</span>
+                            </div>
+                            <div class="job-stat">
+                                <span class="label">Budget:</span>
+                                <span class="value">₹18,000</span>
+                            </div>
+                            <div class="job-stat">
+                                <span class="label">Applications:</span>
+                                <span class="value">15</span>
+                            </div>
+                        </div>
+                        <div class="job-actions">
+                            <button class="btn-outline">View Details</button>
+                            <button class="btn-primary" data-toast="15 new applications waiting. Review them now!">Review Applications</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="jobs-list" data-tab-content="completed-jobs" hidden>
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div>
+                                <h3>Leadership Summit 2025</h3>
+                                <p><i class="fas fa-map-marker-alt"></i> Hyderabad Expo • Oct 20, 2025</p>
+                            </div>
+                            <span class="status-badge completed">Completed</span>
+                        </div>
+                        <div class="job-details">
+                            <div class="job-stat">
+                                <span class="label">Staff Hired:</span>
+                                <span class="value">18/18</span>
+                            </div>
+                            <div class="job-stat">
+                                <span class="label">Budget:</span>
+                                <span class="value">₹54,000</span>
+                            </div>
+                            <div class="job-stat">
+                                <span class="label">Rating:</span>
+                                <span class="value">4.9 ★</span>
+                            </div>
+                        </div>
+                        <div class="job-actions">
+                            <button class="btn-outline">View Summary</button>
+                            <button class="btn-outline">Download Report</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="jobs-list" data-tab-content="draft-jobs" hidden>
+                    <div class="job-card">
+                        <div class="job-header">
+                            <div>
+                                <h3>Luxury Wedding Weekend</h3>
+                                <p><i class="fas fa-map-marker-alt"></i> Goa Beach Resort • Dec 18, 2025</p>
+                            </div>
+                            <span class="status-badge pending">Draft</span>
+                        </div>
+                        <p class="draft-note">Finish the job details and publish when you're ready to start hiring.</p>
+                        <div class="job-actions">
+                            <button class="btn-primary">Continue Editing</button>
+                            <button class="btn-outline">Discard</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Payments Section -->
+            <section id="payments" class="dashboard-section">
+                <h1>Payments & Billing</h1>
+                
+                <div class="payment-overview">
+                    <div class="payment-card">
+                        <h3>Account Balance</h3>
+                        <p class="amount">₹45,000</p>
+                        <button class="btn-primary" onclick="showAddFundsModal()">Add Funds</button>
+                    </div>
+                    <div class="payment-card">
+                        <h3>Pending Payments</h3>
+                        <p class="amount">₹12,000</p>
+                        <button class="btn-outline">View Details</button>
+                    </div>
+                    <div class="payment-card">
+                        <h3>Total Spent (This Month)</h3>
+                        <p class="amount">₹2,50,000</p>
+                    </div>
+                </div>
+            </section>  
+
+            <!-- Messages Section -->
+            <section id="messages" class="dashboard-section">
+                <h1>Messages</h1>
+                <div class="messages-container">
+                    <div class="messages-sidebar">
+                        <div class="message-search">
+                            <i class="fas fa-search"></i>
+                            <input type="text" placeholder="Search conversations...">
+                        </div>
+                        <div class="conversation-list">
+                            <div class="conversation-item active">
+                                <img src="https://ui-avatars.com/api/?name=Priya+Kumar&background=6366f1&color=fff" alt="Priya Kumar">
+                                <div class="conversation-info">
+                                    <h4>Priya Kumar</h4>
+                                    <p>Thanks! See you at the event...</p>
+                                </div>
+                                <span class="time">2m</span>
+                            </div>
+                            <div class="conversation-item">
+                                <img src="https://ui-avatars.com/api/?name=Rahul+Singh&background=10b981&color=fff" alt="Rahul Singh">
+                                <div class="conversation-info">
+                                    <h4>Rahul Singh</h4>
+                                    <p>What time should I arrive?</p>
+                                </div>
+                                <span class="time">1h</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-area">
+                        <div class="chat-header">
+                            <img src="https://ui-avatars.com/api/?name=Priya+Kumar&background=6366f1&color=fff" alt="Priya Kumar">
+                            <div>
+                                <h4>Priya Kumar</h4>
+                                <p>Active now</p>
+                            </div>
+                        </div>
+                        <div class="chat-messages">
+                            <div class="message received">
+                                <p>Hi! I applied for the Event Coordinator position.</p>
+                                <span class="time">10:30 AM</span>
+                            </div>
+                            <div class="message sent">
+                                <p>Great! I've reviewed your profile. You're hired!</p>
+                                <span class="time">10:35 AM</span>
+                            </div>
+                            <div class="message received">
+                                <p>Thanks! See you at the event on Nov 15th.</p>
+                                <span class="time">10:37 AM</span>
+                            </div>
+                        </div>
+                        <div class="chat-input">
+                            <input type="text" placeholder="Type a message...">
+                            <button class="btn-primary"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile Section -->
+            <section id="profile" class="dashboard-section">
+                <h1>Profile Settings</h1>
+                <div class="profile-card">
+                    <div class="profile-header">
+                        <img src="https://ui-avatars.com/api/?name=Event+Organizer&background=6366f1&color=fff" alt="Profile" class="profile-image-large">
+                        <div class="profile-header-info">
+                            <h2>Event Organizer</h2>
+                            <p class="profile-role">Event Organizer</p>
+                        </div>
+                        <button class="btn-outline">Change Photo</button>
+                    </div>
+                    <form class="profile-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Company/Organization Name</label>
+                                <input type="text" name="username" value="TechEvents India">
+                            </div>
+                            <div class="form-group">
+                                <label>Contact Person</label>
+                                <input type="text" name="contact_person" value="Amit Sharma">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Email</label>
+                                <input type="email" name="email" value="amit@techevents.in" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label>Phone</label>
+                                <input type="tel" name="phone" value="+91 98765 43210">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>City</label>
+                            <select name="city">
+                                <option value="mumbai">Mumbai</option>
+                                <option value="delhi">Delhi</option>
+                                <option value="bangalore">Bangalore</option>
+                                <option value="pune">Pune</option>
+                                <option value="hyderabad">Hyderabad</option>
+                                <option value="chennai">Chennai</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>About Organization</label>
+                            <textarea name="bio" rows="4">Leading event management company specializing in corporate and tech events.</textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn-outline">Cancel</button>
+                            <button type="submit" class="btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add Funds Modal -->
+    <div id="add-funds-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAddFundsModal()">&times;</span>
+            <h2>Add Funds to Wallet</h2>
+            <form onsubmit="handleAddFunds(event)">
+                <div class="form-group">
+                    <label>Amount to Add</label>
+                    <input type="number" id="add-funds-amount" placeholder="Enter amount" required min="100">
+                </div>
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <select required>
+                        <option value="card">Credit/Debit Card</option>
+                        <option value="upi">UPI</option>
+                        <option value="netbanking">Net Banking</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-outline" onclick="closeAddFundsModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Funds</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Track Attendance Modal -->
+    <div id="attendance-modal" class="modal" style="display: none;">
+        <div class="modal-content qr-modal-content">
+            <span class="close-modal" onclick="closeAttendanceModal()">&times;</span>
+            <h2>Track Attendance</h2>
+            <p class="qr-instructions">Share this QR code with your staff for attendance tracking</p>
+            <div id="attendance-qr-container"></div>
+            <div class="qr-booking-info">
+                <h3 id="attendance-job-title"></h3>
+                <p id="attendance-job-details"></p>
+            </div>
+            <button class="btn-primary" onclick="closeAttendanceModal()">Close</button>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div id="report-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeReportModal()">&times;</span>
+            <h2>Job Report</h2>
+            <div id="report-content">
+                <!-- Report content will be loaded here -->
+            </div>
+            <div class="form-actions">
+                <button class="btn-outline" onclick="downloadReportPDF()">Download PDF</button>
+                <button class="btn-primary" onclick="closeReportModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

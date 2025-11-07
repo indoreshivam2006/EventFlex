@@ -1,0 +1,115 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>EventFlex API Docs (Interactive)</title>
+  <style>
+    body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;max-width:980px;margin:24px auto;color:#111}
+    h1{margin-bottom:6px}
+    .endpoint{border:1px solid #e6e6e6;padding:16px;margin:12px 0;border-radius:6px}
+    label{display:block;margin-top:8px;font-weight:600}
+    input,select,textarea{width:100%;padding:8px;margin-top:6px;border:1px solid #ddd;border-radius:4px}
+    button{margin-top:10px;padding:8px 12px;border-radius:6px;border:0;background:#0066ff;color:#fff}
+    pre{background:#0f1724;color:#e6eef8;padding:12px;border-radius:6px;overflow:auto}
+    .note{font-size:13px;color:#555}
+  </style>
+</head>
+<body>
+  <h1>EventFlex — Interactive API Documentation</h1>
+  <p class="note">Tip: For browser testing from this page, host it on <code>http://127.0.0.1:8000</code> or run a simple static server (for example <code>python -m http.server</code>) to avoid CORS issues with file://.</p>
+
+  <div class="endpoint">
+    <h3>GET /api/jobs/</h3>
+    <p class="note">List all jobs</p>
+    <button id="btn_jobs">Fetch jobs</button>
+    <pre id="out_jobs"></pre>
+  </div>
+
+  <div class="endpoint">
+    <h3>GET /api/jobs/&lt;id&gt;/</h3>
+    <label>Job ID</label>
+    <input id="job_id" value="1">
+    <button id="btn_job">Fetch job</button>
+    <pre id="out_job"></pre>
+  </div>
+
+  <div class="endpoint">
+    <h3>GET /api/talent/</h3>
+    <p class="note">List event pros (staff)</p>
+    <button id="btn_talent">Fetch talent</button>
+    <pre id="out_talent"></pre>
+  </div>
+
+  <div class="endpoint">
+    <h3>POST /api/auth/register/</h3>
+    <label>Username</label>
+    <input id="reg_username" placeholder="new_user">
+    <label>Email</label>
+    <input id="reg_email" placeholder="you@example.com">
+    <label>Password</label>
+    <input id="reg_password" type="password" placeholder="secret">
+    <label>Type</label>
+    <select id="reg_type"><option value="staff">staff</option><option value="organizer">organizer</option></select>
+    <button id="btn_register">Register</button>
+    <pre id="out_register"></pre>
+  </div>
+
+  <div class="endpoint">
+    <h3>POST /api/auth/login/</h3>
+    <label>Username</label>
+    <input id="login_username" placeholder="priya_kumar">
+    <label>Password</label>
+    <input id="login_password" type="password" placeholder="password">
+    <button id="btn_login">Login</button>
+    <pre id="out_login"></pre>
+  </div>
+
+  <div class="endpoint">
+    <h3>POST /api/jobs/&lt;id&gt;/apply/</h3>
+    <label>Job ID</label>
+    <input id="apply_job_id" value="1">
+    <label>Username (applicant)</label>
+    <input id="apply_username" placeholder="priya_kumar">
+    <label>Cover message</label>
+    <textarea id="apply_message">I am interested in this role.</textarea>
+    <button id="btn_apply">Apply</button>
+    <pre id="out_apply"></pre>
+  </div>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:8000/api';
+    function show(preId, obj){ document.getElementById(preId).textContent = JSON.stringify(obj, null, 2); }
+
+    document.getElementById('btn_jobs').addEventListener('click', async () => {
+      try{ const r = await fetch(`${API_BASE}/jobs/`); show('out_jobs', await r.json()); }catch(e){ show('out_jobs', {error:e+''}); }
+    });
+
+    document.getElementById('btn_job').addEventListener('click', async () => {
+      const id = document.getElementById('job_id').value || '1';
+      try{ const r = await fetch(`${API_BASE}/jobs/${id}/`); show('out_job', await r.json()); }catch(e){ show('out_job', {error:e+''}); }
+    });
+
+    document.getElementById('btn_talent').addEventListener('click', async ()=>{
+      try{ const r = await fetch(`${API_BASE}/talent/`); show('out_talent', await r.json()); }catch(e){ show('out_talent', {error:e+''}); }
+    });
+
+    document.getElementById('btn_register').addEventListener('click', async ()=>{
+      const payload = { username: document.getElementById('reg_username').value, email: document.getElementById('reg_email').value, password: document.getElementById('reg_password').value, user_type: document.getElementById('reg_type').value };
+      try{ const r = await fetch(`${API_BASE}/auth/register/`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)}); show('out_register', await r.json()); }catch(e){ show('out_register',{error:e+''}); }
+    });
+
+    document.getElementById('btn_login').addEventListener('click', async ()=>{
+      const payload = { username: document.getElementById('login_username').value, password: document.getElementById('login_password').value };
+      try{ const r = await fetch(`${API_BASE}/auth/login/`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), credentials:'include'}); show('out_login', await r.json()); }catch(e){ show('out_login',{error:e+''}); }
+    });
+
+    document.getElementById('btn_apply').addEventListener('click', async ()=>{
+      const id = document.getElementById('apply_job_id').value || '1';
+      const payload = { username: document.getElementById('apply_username').value, cover_message: document.getElementById('apply_message').value };
+      try{ const r = await fetch(`${API_BASE}/jobs/${id}/apply/`, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload), credentials:'include'}); show('out_apply', await r.json()); }catch(e){ show('out_apply',{error:e+''}); }
+    });
+  </script>
+</body>
+</html>
