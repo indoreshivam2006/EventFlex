@@ -280,10 +280,15 @@
             }).length;
             
             // Update UI
-            document.getElementById('stat-events-completed').textContent = completedEvents;
-            document.getElementById('stat-total-earned').textContent = `₹${totalEarned.toLocaleString()}`;
-            document.getElementById('stat-rating').textContent = '5.0'; // Placeholder
-            document.getElementById('stat-upcoming').textContent = upcoming;
+            const completedEl = document.getElementById('stat-events-completed');
+            const earnedEl = document.getElementById('stat-total-earned');
+            const ratingEl = document.getElementById('stat-rating');
+            const upcomingEl = document.getElementById('stat-upcoming');
+            
+            if (completedEl) completedEl.textContent = completedEvents;
+            if (earnedEl) earnedEl.textContent = `₹${totalEarned.toLocaleString()}`;
+            if (ratingEl) ratingEl.textContent = '5.0'; // Placeholder
+            if (upcomingEl) upcomingEl.textContent = upcoming;
             
         } catch (err) {
             console.error('Failed to load staff dashboard stats:', err);
@@ -1145,15 +1150,23 @@
             
             const data = await res.json();
             
-            // Update balance cards
-            document.getElementById('available-balance').textContent = `₹${formatNumber(data.available_balance)}`;
-            document.getElementById('pending-amount').textContent = `₹${formatNumber(data.pending_amount)}`;
-            document.getElementById('pending-text').textContent = `From ${data.pending_count} completed event${data.pending_count !== 1 ? 's' : ''}`;
-            document.getElementById('total-earned').textContent = `₹${formatNumber(data.total_earned)}`;
-            document.getElementById('total-events-text').textContent = `Across ${data.total_events} event${data.total_events !== 1 ? 's' : ''}`;
+            // Update balance cards (check if elements exist)
+            const availableBalanceEl = document.getElementById('available-balance');
+            const pendingAmountEl = document.getElementById('pending-amount');
+            const pendingTextEl = document.getElementById('pending-text');
+            const totalEarnedEl = document.getElementById('total-earned');
+            const totalEventsTextEl = document.getElementById('total-events-text');
+            
+            if (availableBalanceEl) availableBalanceEl.textContent = `₹${formatNumber(data.available_balance)}`;
+            if (pendingAmountEl) pendingAmountEl.textContent = `₹${formatNumber(data.pending_amount)}`;
+            if (pendingTextEl) pendingTextEl.textContent = `From ${data.pending_count} completed event${data.pending_count !== 1 ? 's' : ''}`;
+            if (totalEarnedEl) totalEarnedEl.textContent = `₹${formatNumber(data.total_earned)}`;
+            if (totalEventsTextEl) totalEventsTextEl.textContent = `Across ${data.total_events} event${data.total_events !== 1 ? 's' : ''}`;
             
             // Render earnings chart
-            renderEarningsChart(data.monthly_earnings);
+            if (data.monthly_earnings) {
+                renderEarningsChart(data.monthly_earnings);
+            }
         } catch (err) {
             console.error('Failed to load wallet stats:', err);
         }
@@ -1920,6 +1933,14 @@
             });
         });
 
+        // Application Form
+        const applicationForm = document.getElementById('application-form');
+        if (applicationForm) {
+            applicationForm.addEventListener('submit', async (event) => {
+                await handleJobApplication(event);
+            });
+        }
+
         // Apply Job Buttons (delegated)
         document.addEventListener('click', async (event) => {
             const btn = event.target.closest('.apply-job-btn');
@@ -1946,6 +1967,16 @@
                 await handleHireTalent(btn);
             }
         });
+
+        // Modal backdrop click handlers
+        const applicationModal = document.getElementById('application-modal');
+        if (applicationModal) {
+            applicationModal.addEventListener('click', (event) => {
+                if (event.target === applicationModal) {
+                    closeApplicationModal();
+                }
+            });
+        }
     }
 
     async function handleJobPost(form) {
