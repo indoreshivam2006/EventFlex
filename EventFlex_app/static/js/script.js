@@ -2268,6 +2268,7 @@
             const fullNameInput = document.getElementById('apply-full-name');
             const emailInput = document.getElementById('apply-email');
             const phoneInput = document.getElementById('apply-phone');
+            const cityInput = document.getElementById('apply-city');
             
             if (fullNameInput && currentUser.first_name && currentUser.last_name) {
                 fullNameInput.value = `${currentUser.first_name} ${currentUser.last_name}`.trim();
@@ -2281,6 +2282,10 @@
             
             if (phoneInput && currentUser.phone) {
                 phoneInput.value = currentUser.phone;
+            }
+            
+            if (cityInput && currentUser.city) {
+                cityInput.value = currentUser.city;
             }
         }
         
@@ -2327,37 +2332,63 @@
             return;
         }
         
-        // Handle CV file upload (if provided)
+        // Handle CV file upload (required now)
         const cvFile = formData.get('cv');
-        let cvData = null;
-        if (cvFile && cvFile.size > 0) {
-            // Check file size (max 5MB)
-            if (cvFile.size > 5 * 1024 * 1024) {
-                showToast('CV file size must be less than 5MB', 'error');
-                return;
-            }
-            
-            // For now, we'll store file info (in real implementation, upload to server)
-            cvData = {
-                name: cvFile.name,
-                size: cvFile.size,
-                type: cvFile.type
-            };
+        if (!cvFile || cvFile.size === 0) {
+            showToast('Please upload your resume/CV', 'error');
+            return;
         }
         
-        // Build payload with simplified form fields
+        // Check file size (max 5MB)
+        if (cvFile.size > 5 * 1024 * 1024) {
+            showToast('CV file size must be less than 5MB', 'error');
+            return;
+        }
+        
+        // Check file type
+        const allowedTypes = ['.pdf', '.doc', '.docx'];
+        const fileName = cvFile.name.toLowerCase();
+        const isValidType = allowedTypes.some(type => fileName.endsWith(type));
+        if (!isValidType) {
+            showToast('Please upload PDF, DOC, or DOCX file only', 'error');
+            return;
+        }
+        
+        // Store CV file info
+        const cvData = {
+            name: cvFile.name,
+            size: cvFile.size,
+            type: cvFile.type
+        };
+        
+        // Build comprehensive payload with all form fields
         const payload = {
             username: currentUser.username,
+            // Application Details
             full_name: formData.get('full_name'),
             email: formData.get('email'),
             phone: formData.get('phone'),
+            city: formData.get('city'),
+            // Professional Information
             role: formData.get('role'),
-            why_interested: formData.get('why_hire'),
-            cv_info: cvData ? JSON.stringify(cvData) : null,
-            // Store role in relevant_skills field for compatibility
-            relevant_skills: formData.get('role'),
-            // Store "why hire you" in why_interested field
-            cover_message: formData.get('why_hire')
+            experience_years: formData.get('experience_years'),
+            portfolio_link: formData.get('portfolio_link') || '',
+            // Skills & Expertise
+            relevant_skills: formData.get('relevant_skills'),
+            certifications: formData.get('certifications') || '',
+            // Availability
+            availability: formData.get('availability'),
+            notice_period: formData.get('notice_period') || '',
+            // Previous Events & Experience
+            previous_events: formData.get('previous_events'),
+            references: formData.get('references') || '',
+            // Why Interested
+            why_interested: formData.get('why_interested'),
+            expected_compensation: formData.get('expected_compensation') || '',
+            // Cover Message
+            cover_message: formData.get('cover_message'),
+            // CV Info
+            cv_info: JSON.stringify(cvData)
         };
         
         try {

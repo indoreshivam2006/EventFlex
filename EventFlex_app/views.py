@@ -698,17 +698,17 @@ def apply_job(request, job_id):
 	app = Application.objects.create(
 		job=job,
 		applicant=profile,
-		cover_message=cover,
+		cover_message=payload.get('cover_message', cover),
 		full_name=payload.get('full_name', ''),
 		email=payload.get('email', ''),
 		phone=payload.get('phone', ''),
-		experience_years=payload.get('experience_years', 0),
+		experience_years=payload.get('experience_years', '0'),
 		relevant_skills=payload.get('relevant_skills', ''),
 		availability=payload.get('availability', ''),
 		portfolio_link=payload.get('portfolio_link', ''),
 		previous_events=payload.get('previous_events', ''),
 		why_interested=payload.get('why_interested', ''),
-		expected_compensation=payload.get('expected_compensation', None)
+		expected_compensation=payload.get('expected_compensation', '')
 	)
 	return JsonResponse({
 		'message': 'Application submitted successfully',
