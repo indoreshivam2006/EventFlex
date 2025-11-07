@@ -483,18 +483,22 @@
         container.innerHTML = applications.map(app => {
             const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(app.applicant.username)}&background=6366f1&color=fff`;
             const badge = app.applicant.badge || '';
+            const fullName = app.full_name || app.applicant.username;
             
             return `
                 <div class="application-item">
                     <img src="${avatarUrl}" alt="${escapeHtml(app.applicant.username)}">
                     <div class="application-details">
-                        <h4>${escapeHtml(app.applicant.username)}</h4>
+                        <h4>${escapeHtml(fullName)}</h4>
                         <p>${escapeHtml(app.job.role)}</p>
                         ${badge ? `<span class="badge-pro">${escapeHtml(badge)}</span>` : ''}
                     </div>
                     <div class="application-actions">
-                        <button class="btn-sm btn-success" onclick="updateApplicationStatus(${app.id}, 'accepted')">Accept</button>
-                        <button class="btn-sm btn-outline" onclick="updateApplicationStatus(${app.id}, 'rejected')">Reject</button>
+                        <button class="btn-sm btn-primary" onclick="viewApplicationDetail(${app.id})" style="margin-right: 0.5rem;">
+                            <i class="fas fa-eye"></i> View Details
+                        </button>
+                        <button class="btn-sm btn-success" onclick="quickAcceptApplication(${app.id})">Accept</button>
+                        <button class="btn-sm btn-outline" onclick="quickRejectApplication(${app.id})">Reject</button>
                     </div>
                 </div>
             `;
@@ -2173,51 +2177,158 @@
             return;
         }
 
+        // Show application form modal instead of directly applying
+        showApplicationModal(jobId, button);
+    }
+
+    function showApplicationModal(jobId, button) {
+        const modal = document.getElementById('application-modal');
+        const jobIdInput = document.getElementById('apply-job-id');
+        const modalJobTitle = document.getElementById('modal-job-title');
+        
+        if (!modal || !jobIdInput) {
+            console.error('Application modal or job ID input not found');
+            return;
+        }
+        
+        // Find the job details from the button's parent card
+        const jobCard = button.closest('.job-listing-card, .job-card');
+        let jobTitle = 'Job Application';
+        
+        if (jobCard) {
+            const titleElement = jobCard.querySelector('h3');
+            if (titleElement) {
+                jobTitle = titleElement.textContent.trim();
+            }
+        }
+        
+        // Set job info in modal
+        jobIdInput.value = jobId;
+        if (modalJobTitle) {
+            modalJobTitle.textContent = `Applying for: ${jobTitle}`;
+        }
+        
+        // Pre-fill form with user data if available
+        if (currentUser) {
+            const fullNameInput = document.getElementById('apply-full-name');
+            const emailInput = document.getElementById('apply-email');
+            const phoneInput = document.getElementById('apply-phone');
+            
+            if (fullNameInput && currentUser.first_name && currentUser.last_name) {
+                fullNameInput.value = `${currentUser.first_name} ${currentUser.last_name}`.trim();
+            } else if (fullNameInput && currentUser.username) {
+                fullNameInput.value = currentUser.username;
+            }
+            
+            if (emailInput && currentUser.email) {
+                emailInput.value = currentUser.email;
+            }
+            
+            if (phoneInput && currentUser.phone) {
+                phoneInput.value = currentUser.phone;
+            }
+        }
+        
+        // Show modal
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeApplicationModal() {
+        const modal = document.getElementById('application-modal');
+        const form = document.getElementById('application-form');
+        
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        
+        if (form) {
+            form.reset();
+        }
+    }
+
+    async function handleJobApplication(event) {
+        event.preventDefault();
+        
+        const form = event.target;
+        const formData = new FormData(form);
+        const jobId = formData.get('job_id');
+        
+        if (!jobId) {
+            showToast('Job ID missing', 'error');
+            return;
+        }
+        
+        if (!currentUser || !currentUser.username) {
+            showToast('Please log in to submit application', 'warning');
+            return;
+        }
+        
+        // Build payload with all form fields
+        const payload = {
+            username: currentUser.username,
+            full_name: formData.get('full_name'),
+            email: formData.get('email'),
+            phone: formData.get('phone'),
+            experience_years: parseInt(formData.get('experience_years')) || 0,
+            relevant_skills: formData.get('relevant_skills'),
+            availability: formData.get('availability'),
+            portfolio_link: formData.get('portfolio_link'),
+            previous_events: formData.get('previous_events'),
+            why_interested: formData.get('why_interested'),
+            expected_compensation: formData.get('expected_compensation') ? parseFloat(formData.get('expected_compensation')) : null,
+            cover_message: formData.get('cover_message') || ''
+        };
+        
         try {
             const res = await fetch(`${API_BASE}/jobs/${jobId}/apply/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    username: currentUser.username, 
-                    cover_message: 'I am interested in this opportunity and would like to apply.' 
-                }),
+                body: JSON.stringify(payload),
                 credentials: 'include',
             });
             
             const data = await res.json();
             
             if (!res.ok) {
-                // Check if it's a duplicate application error
                 if (data.already_applied) {
                     showToast('You have already applied to this job', 'warning');
-                    // Update button to show applied state
-                    button.disabled = true;
-                    button.textContent = 'Applied';
-                    button.style.opacity = '0.6';
-                    button.style.cursor = 'not-allowed';
                 } else {
-                    showToast(data.error || 'Failed to apply', 'error');
+                    showToast(data.error || 'Failed to submit application', 'error');
                 }
+                closeApplicationModal();
                 return;
             }
             
             showToast('Application submitted successfully!', 'success');
-            button.disabled = true;
-            button.textContent = 'Applied';
-            button.style.opacity = '0.6';
-            button.style.cursor = 'not-allowed';
+            closeApplicationModal();
             
-            // Redirect to my-applications section
+            // Update the apply button to show applied state
+            const applyButtons = document.querySelectorAll(`[data-job-id="${jobId}"]`);
+            applyButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.textContent = 'Applied';
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+            });
+            
+            // Reload applications to show the new one
             setTimeout(() => {
-                window.location.href = '/staff-portal/#my-applications';
-                // Reload applications to show the new one
-                loadStaffApplications();
-            }, 1500);
+                if (typeof loadStaffApplications === 'function') {
+                    loadStaffApplications();
+                }
+            }, 1000);
         } catch (err) {
-            showToast('Network error while applying', 'error');
+            showToast('Network error while submitting application', 'error');
             console.error(err);
         }
     }
+
+    // Make functions globally available
+    window.showApplicationModal = showApplicationModal;
+    window.closeApplicationModal = closeApplicationModal;
+    window.handleJobApplication = handleJobApplication;
 
     async function handleViewProfile(button) {
         const profileId = button.dataset.profileId;
@@ -2682,6 +2793,218 @@
         } catch (err) {
             console.error('Profile save error:', err);
             showToast('Failed to save profile', 'error');
+        }
+    };
+
+    // Application Detail Modal Functions
+    let currentApplicationId = null;
+
+    window.viewApplicationDetail = async function(applicationId) {
+        currentApplicationId = applicationId;
+        
+        try {
+            const res = await fetch(`${API_BASE}/applications/${applicationId}/`, {
+                credentials: 'include'
+            });
+            
+            if (!res.ok) {
+                showToast('Failed to load application details', 'error');
+                return;
+            }
+            
+            const app = await res.json();
+            
+            // Populate modal with application data
+            document.getElementById('applicant-name').textContent = app.full_name || app.applicant.username;
+            document.getElementById('application-job-title').textContent = `${app.job.role} - ${app.job.title}`;
+            document.getElementById('applicant-email').textContent = app.email || app.applicant.email || 'Not provided';
+            document.getElementById('applicant-phone').textContent = app.phone || app.applicant.phone || 'Not provided';
+            document.getElementById('application-date').textContent = formatDate(app.created_at);
+            
+            // Status badge
+            const statusBadge = document.getElementById('application-status-badge');
+            statusBadge.textContent = app.status.toUpperCase();
+            statusBadge.className = `badge badge-${app.status}`;
+            
+            // Professional info
+            document.getElementById('applicant-experience').textContent = app.experience_years || '0';
+            document.getElementById('applicant-compensation').textContent = app.expected_compensation 
+                ? `₹${app.expected_compensation}` 
+                : 'Not specified';
+            
+            // Skills, availability, etc.
+            document.getElementById('applicant-skills').textContent = app.relevant_skills || 'Not provided';
+            document.getElementById('applicant-availability').textContent = app.availability || 'Not provided';
+            document.getElementById('applicant-previous-events').textContent = app.previous_events || 'Not provided';
+            document.getElementById('applicant-why-interested').textContent = app.why_interested || 'Not provided';
+            
+            // Portfolio link (show/hide section)
+            const portfolioSection = document.getElementById('portfolio-section');
+            if (app.portfolio_link) {
+                portfolioSection.style.display = 'block';
+                const portfolioLink = document.getElementById('applicant-portfolio');
+                portfolioLink.href = app.portfolio_link;
+                portfolioLink.textContent = app.portfolio_link;
+            } else {
+                portfolioSection.style.display = 'none';
+            }
+            
+            // Cover message (show/hide section)
+            const coverMessageSection = document.getElementById('cover-message-section');
+            if (app.cover_message) {
+                coverMessageSection.style.display = 'block';
+                document.getElementById('applicant-cover-message').textContent = app.cover_message;
+            } else {
+                coverMessageSection.style.display = 'none';
+            }
+            
+            // Show/hide action buttons based on status
+            const actionsDiv = document.getElementById('application-actions');
+            if (app.status === 'pending') {
+                actionsDiv.style.display = 'flex';
+            } else {
+                actionsDiv.style.display = 'none';
+            }
+            
+            // Show modal
+            const modal = document.getElementById('application-detail-modal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            
+        } catch (err) {
+            console.error('Error loading application details:', err);
+            showToast('Error loading application details', 'error');
+        }
+    };
+
+    window.closeApplicationDetailModal = function() {
+        const modal = document.getElementById('application-detail-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+        currentApplicationId = null;
+    };
+
+    window.handleAcceptApplication = async function() {
+        if (!currentApplicationId) return;
+        
+        if (!confirm('Are you sure you want to accept this application?')) {
+            return;
+        }
+        
+        try {
+            const res = await fetch(`${API_BASE}/applications/${currentApplicationId}/accept/`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok) {
+                showToast(`Application accepted! ${data.applicant_name} has been notified.`, 'success');
+                closeApplicationDetailModal();
+                // Reload applications list
+                if (typeof loadRecentApplications === 'function') {
+                    await loadRecentApplications();
+                }
+                if (typeof loadDashboardStats === 'function') {
+                    await loadDashboardStats();
+                }
+            } else {
+                showToast(data.error || 'Failed to accept application', 'error');
+            }
+        } catch (err) {
+            console.error('Error accepting application:', err);
+            showToast('Error accepting application', 'error');
+        }
+    };
+
+    window.handleRejectApplication = async function() {
+        if (!currentApplicationId) return;
+        
+        if (!confirm('Are you sure you want to reject this application?')) {
+            return;
+        }
+        
+        try {
+            const res = await fetch(`${API_BASE}/applications/${currentApplicationId}/reject/`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            const data = await res.json();
+            
+            if (res.ok) {
+                showToast('Application rejected', 'success');
+                closeApplicationDetailModal();
+                // Reload applications list
+                if (typeof loadRecentApplications === 'function') {
+                    await loadRecentApplications();
+                }
+                if (typeof loadDashboardStats === 'function') {
+                    await loadDashboardStats();
+                }
+            } else {
+                showToast(data.error || 'Failed to reject application', 'error');
+            }
+        } catch (err) {
+            console.error('Error rejecting application:', err);
+            showToast('Error rejecting application', 'error');
+        }
+    };
+
+    // Quick accept/reject from list view
+    window.quickAcceptApplication = async function(appId) {
+        if (!confirm('Accept this application?')) return;
+        
+        try {
+            const res = await fetch(`${API_BASE}/applications/${appId}/accept/`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            if (res.ok) {
+                const data = await res.json();
+                showToast(`Application accepted!`, 'success');
+                if (typeof loadRecentApplications === 'function') {
+                    await loadRecentApplications();
+                }
+                if (typeof loadDashboardStats === 'function') {
+                    await loadDashboardStats();
+                }
+            } else {
+                showToast('Failed to accept application', 'error');
+            }
+        } catch (err) {
+            console.error('Error accepting application:', err);
+            showToast('Error accepting application', 'error');
+        }
+    };
+
+    window.quickRejectApplication = async function(appId) {
+        if (!confirm('Reject this application?')) return;
+        
+        try {
+            const res = await fetch(`${API_BASE}/applications/${appId}/reject/`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            
+            if (res.ok) {
+                showToast('Application rejected', 'success');
+                if (typeof loadRecentApplications === 'function') {
+                    await loadRecentApplications();
+                }
+                if (typeof loadDashboardStats === 'function') {
+                    await loadDashboardStats();
+                }
+            } else {
+                showToast('Failed to reject application', 'error');
+            }
+        } catch (err) {
+            console.error('Error rejecting application:', err);
+            showToast('Error rejecting application', 'error');
         }
     };
 })();

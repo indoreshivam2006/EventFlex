@@ -620,6 +620,35 @@ def _job_to_dict(job: Job):
 	}
 
 
+def _application_to_dict(application):
+	"""Convert Application model to dictionary with all details"""
+	return {
+		'id': application.id,
+		'job': {
+			'id': application.job.id,
+			'title': application.job.title,
+			'role': application.job.role,
+			'location': application.job.location,
+			'date': safe_isoformat(application.job.date),
+			'pay_rate': str(application.job.pay_rate),
+		},
+		'applicant': _profile_to_dict(application.applicant),
+		'status': application.status,
+		'created_at': safe_isoformat(application.created_at),
+		'cover_message': application.cover_message,
+		'full_name': application.full_name,
+		'email': application.email,
+		'phone': application.phone,
+		'experience_years': application.experience_years,
+		'relevant_skills': application.relevant_skills,
+		'availability': application.availability,
+		'portfolio_link': application.portfolio_link,
+		'previous_events': application.previous_events,
+		'why_interested': application.why_interested,
+		'expected_compensation': str(application.expected_compensation) if application.expected_compensation else None,
+	}
+
+
 def jobs_list(request):
 	jobs = Job.objects.all().order_by('-created_at')[:50]
 	data = [_job_to_dict(j) for j in jobs]
@@ -665,8 +694,27 @@ def apply_job(request, job_id):
 			'application_id': existing_application.id
 		}, status=400)
 
-	app = Application.objects.create(job=job, applicant=profile, cover_message=cover)
-	return JsonResponse({'message': 'Application submitted', 'application_id': app.id})
+	# Create application with detailed form fields
+	app = Application.objects.create(
+		job=job,
+		applicant=profile,
+		cover_message=cover,
+		full_name=payload.get('full_name', ''),
+		email=payload.get('email', ''),
+		phone=payload.get('phone', ''),
+		experience_years=payload.get('experience_years', 0),
+		relevant_skills=payload.get('relevant_skills', ''),
+		availability=payload.get('availability', ''),
+		portfolio_link=payload.get('portfolio_link', ''),
+		previous_events=payload.get('previous_events', ''),
+		why_interested=payload.get('why_interested', ''),
+		expected_compensation=payload.get('expected_compensation', None)
+	)
+	return JsonResponse({
+		'message': 'Application submitted successfully',
+		'application_id': app.id,
+		'status': app.status
+	})
 
 
 def talent_list(request):
@@ -841,16 +889,7 @@ def my_applications(request):
 		# Get applications to jobs posted by this organizer
 		applications = Application.objects.filter(job__organizer=profile).order_by('-created_at')
 	
-	data = []
-	for app in applications:
-		data.append({
-			'id': app.id,
-			'job': _job_to_dict(app.job),
-			'applicant': _profile_to_dict(app.applicant),
-			'status': app.status,
-			'cover_message': app.cover_message,
-			'created_at': app.created_at.isoformat()
-		})
+	data = [_application_to_dict(app) for app in applications]
 	
 	return JsonResponse({'results': data})
 
@@ -890,6 +929,94 @@ def update_application_status(request, app_id):
 	app.save()
 	
 	return JsonResponse({'message': 'status updated', 'application_id': app.id, 'status': status})
+
+
+def get_application_detail(request, app_id):
+	"""Get detailed information about a single application"""
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'authentication required'}, status=401)
+	
+	try:
+		profile = UserProfile.objects.get(user=request.user)
+	except UserProfile.DoesNotExist:
+		return JsonResponse({'error': 'profile not found'}, status=404)
+	
+	app = get_object_or_404(Application, id=app_id)
+	
+	# Verify user has permission to view this application
+	if profile.user_type == 'organizer':
+		if app.job.organizer != profile:
+			return JsonResponse({'error': 'unauthorized'}, status=403)
+	elif profile.user_type == 'staff':
+		if app.applicant != profile:
+			return JsonResponse({'error': 'unauthorized'}, status=403)
+	
+	return JsonResponse(_application_to_dict(app))
+
+
+@csrf_exempt
+def accept_application(request, app_id):
+	"""Accept an application (organizer only)"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'authentication required'}, status=401)
+	
+	try:
+		profile = UserProfile.objects.get(user=request.user)
+		if profile.user_type != 'organizer':
+			return JsonResponse({'error': 'only organizers can accept applications'}, status=403)
+	except UserProfile.DoesNotExist:
+		return JsonResponse({'error': 'profile not found'}, status=404)
+	
+	app = get_object_or_404(Application, id=app_id)
+	
+	# Verify organizer owns this job
+	if app.job.organizer != profile:
+		return JsonResponse({'error': 'unauthorized'}, status=403)
+	
+	app.status = 'accepted'
+	app.save()
+	
+	return JsonResponse({
+		'message': 'Application accepted successfully',
+		'application_id': app.id,
+		'status': 'accepted',
+		'applicant_name': app.full_name or app.applicant.user.username
+	})
+
+
+@csrf_exempt
+def reject_application(request, app_id):
+	"""Reject an application (organizer only)"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'authentication required'}, status=401)
+	
+	try:
+		profile = UserProfile.objects.get(user=request.user)
+		if profile.user_type != 'organizer':
+			return JsonResponse({'error': 'only organizers can reject applications'}, status=403)
+	except UserProfile.DoesNotExist:
+		return JsonResponse({'error': 'profile not found'}, status=404)
+	
+	app = get_object_or_404(Application, id=app_id)
+	
+	# Verify organizer owns this job
+	if app.job.organizer != profile:
+		return JsonResponse({'error': 'unauthorized'}, status=403)
+	
+	app.status = 'rejected'
+	app.save()
+	
+	return JsonResponse({
+		'message': 'Application rejected',
+		'application_id': app.id,
+		'status': 'rejected'
+	})
 
 
 @csrf_exempt

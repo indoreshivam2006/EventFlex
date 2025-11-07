@@ -44,6 +44,18 @@ class Application(models.Model):
 	cover_message = models.TextField(blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	status = models.CharField(max_length=32, default='pending')
+	
+	# Detailed application fields
+	full_name = models.CharField(max_length=200, blank=True)
+	email = models.EmailField(blank=True)
+	phone = models.CharField(max_length=32, blank=True)
+	experience_years = models.PositiveIntegerField(default=0, blank=True, null=True)
+	relevant_skills = models.TextField(blank=True)
+	availability = models.CharField(max_length=500, blank=True)
+	portfolio_link = models.URLField(max_length=500, blank=True)
+	previous_events = models.TextField(blank=True)
+	why_interested = models.TextField(blank=True)
+	expected_compensation = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
 
 	def __str__(self):
 		return f"{self.applicant} -> {self.job} ({self.status})"

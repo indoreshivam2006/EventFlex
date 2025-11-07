@@ -13,7 +13,10 @@ urlpatterns = [
     path('profiles/update/', views.update_profile, name='update_profile'),
 
     path('applications/', views.my_applications, name='my_applications'),
+    path('applications/<int:app_id>/', views.get_application_detail, name='get_application_detail'),
     path('applications/<int:app_id>/status/', views.update_application_status, name='update_application_status'),
+    path('applications/<int:app_id>/accept/', views.accept_application, name='accept_application'),
+    path('applications/<int:app_id>/reject/', views.reject_application, name='reject_application'),
 
     path('messages/', views.my_messages, name='my_messages'),
     path('messages/send/', views.send_message, name='send_message'),
