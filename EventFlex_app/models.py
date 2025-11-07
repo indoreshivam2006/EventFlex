@@ -49,13 +49,13 @@ class Application(models.Model):
 	full_name = models.CharField(max_length=200, blank=True)
 	email = models.EmailField(blank=True)
 	phone = models.CharField(max_length=32, blank=True)
-	experience_years = models.PositiveIntegerField(default=0, blank=True, null=True)
+	experience_years = models.CharField(max_length=50, blank=True, default='')  # Changed to CharField to support "3-5", "10+" etc
 	relevant_skills = models.TextField(blank=True)
 	availability = models.CharField(max_length=500, blank=True)
 	portfolio_link = models.URLField(max_length=500, blank=True)
 	previous_events = models.TextField(blank=True)
 	why_interested = models.TextField(blank=True)
-	expected_compensation = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+	expected_compensation = models.CharField(max_length=100, blank=True, default='')  # Changed to CharField for flexibility
 
 	def __str__(self):
 		return f"{self.applicant} -> {self.job} ({self.status})"
