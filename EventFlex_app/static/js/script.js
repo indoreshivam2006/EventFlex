@@ -2193,6 +2193,8 @@
     async function handleJobApply(button) {
         const jobId = button.dataset.jobId;
         
+        console.log('handleJobApply called with jobId:', jobId);
+        
         if (!jobId) {
             showToast('Job ID missing', 'error');
             return;
@@ -2207,14 +2209,20 @@
         }
 
         // Show application form modal instead of directly applying
+        console.log('Calling showApplicationModal...');
         showApplicationModal(jobId, button);
     }
 
     function showApplicationModal(jobId, button) {
+        console.log('showApplicationModal called with jobId:', jobId);
+        
         const modal = document.getElementById('application-modal');
         const jobIdInput = document.getElementById('apply-job-id');
         const modalJobTitle = document.getElementById('modal-job-title');
         const roleInput = document.getElementById('apply-role');
+        
+        console.log('Modal element:', modal);
+        console.log('Job ID input:', jobIdInput);
         
         if (!modal || !jobIdInput) {
             console.error('Application modal or job ID input not found');
@@ -2281,9 +2289,11 @@
             roleInput.value = jobRole;
         }
         
+        console.log('About to show modal...');
         // Show modal
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
+        console.log('Modal should now be visible');
     }
 
     function closeApplicationModal() {
