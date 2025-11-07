@@ -497,8 +497,6 @@
                         <button class="btn-sm btn-primary" onclick="viewApplicationDetail(${app.id})" style="margin-right: 0.5rem;">
                             <i class="fas fa-eye"></i> View Details
                         </button>
-                        <button class="btn-sm btn-success" onclick="quickAcceptApplication(${app.id})">Accept</button>
-                        <button class="btn-sm btn-outline" onclick="quickRejectApplication(${app.id})">Reject</button>
                     </div>
                 </div>
             `;
@@ -945,7 +943,7 @@
             }
         }
         
-        // Render accepted applications (these should NOT appear here, only in bookings)
+        // Render accepted applications 
         const acceptedContainer = document.getElementById('accepted-applications');
         if (acceptedContainer) {
             if (accepted.length === 0) {
@@ -2185,6 +2183,7 @@
         const modal = document.getElementById('application-modal');
         const jobIdInput = document.getElementById('apply-job-id');
         const modalJobTitle = document.getElementById('modal-job-title');
+        const roleInput = document.getElementById('apply-role');
         
         if (!modal || !jobIdInput) {
             console.error('Application modal or job ID input not found');
@@ -2194,11 +2193,28 @@
         // Find the job details from the button's parent card
         const jobCard = button.closest('.job-listing-card, .job-card');
         let jobTitle = 'Job Application';
+        let jobRole = '';
         
         if (jobCard) {
             const titleElement = jobCard.querySelector('h3');
             if (titleElement) {
                 jobTitle = titleElement.textContent.trim();
+            }
+            
+            // Try to find role from job meta/details
+            const roleElement = jobCard.querySelector('.job-role, [class*="role"]');
+            if (roleElement) {
+                jobRole = roleElement.textContent.trim();
+            } else {
+                // Try to extract from job meta spans
+                const metaSpans = jobCard.querySelectorAll('.job-meta span');
+                metaSpans.forEach(span => {
+                    const text = span.textContent.toLowerCase();
+                    if (text.includes('photographer') || text.includes('videographer') || 
+                        text.includes('security') || text.includes('coordinator')) {
+                        jobRole = span.textContent.trim();
+                    }
+                });
             }
         }
         
@@ -2208,7 +2224,7 @@
             modalJobTitle.textContent = `Applying for: ${jobTitle}`;
         }
         
-        // Pre-fill form with user data if available
+        // Pre-fill form with user data and job role if available
         if (currentUser) {
             const fullNameInput = document.getElementById('apply-full-name');
             const emailInput = document.getElementById('apply-email');
@@ -2227,6 +2243,11 @@
             if (phoneInput && currentUser.phone) {
                 phoneInput.value = currentUser.phone;
             }
+        }
+        
+        // Pre-fill role if found
+        if (roleInput && jobRole) {
+            roleInput.value = jobRole;
         }
         
         // Show modal
@@ -2265,20 +2286,37 @@
             return;
         }
         
-        // Build payload with all form fields
+        // Handle CV file upload (if provided)
+        const cvFile = formData.get('cv');
+        let cvData = null;
+        if (cvFile && cvFile.size > 0) {
+            // Check file size (max 5MB)
+            if (cvFile.size > 5 * 1024 * 1024) {
+                showToast('CV file size must be less than 5MB', 'error');
+                return;
+            }
+            
+            // For now, we'll store file info (in real implementation, upload to server)
+            cvData = {
+                name: cvFile.name,
+                size: cvFile.size,
+                type: cvFile.type
+            };
+        }
+        
+        // Build payload with simplified form fields
         const payload = {
             username: currentUser.username,
             full_name: formData.get('full_name'),
             email: formData.get('email'),
             phone: formData.get('phone'),
-            experience_years: parseInt(formData.get('experience_years')) || 0,
-            relevant_skills: formData.get('relevant_skills'),
-            availability: formData.get('availability'),
-            portfolio_link: formData.get('portfolio_link'),
-            previous_events: formData.get('previous_events'),
-            why_interested: formData.get('why_interested'),
-            expected_compensation: formData.get('expected_compensation') ? parseFloat(formData.get('expected_compensation')) : null,
-            cover_message: formData.get('cover_message') || ''
+            role: formData.get('role'),
+            why_interested: formData.get('why_hire'),
+            cv_info: cvData ? JSON.stringify(cvData) : null,
+            // Store role in relevant_skills field for compatibility
+            relevant_skills: formData.get('role'),
+            // Store "why hire you" in why_interested field
+            cover_message: formData.get('why_hire')
         };
         
         try {
