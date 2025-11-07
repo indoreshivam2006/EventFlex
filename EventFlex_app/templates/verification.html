@@ -1,0 +1,414 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification - EventFlex</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .verification-hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 6rem 0 4rem;
+            text-align: center;
+        }
+
+        .verification-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+        }
+
+        .verification-hero p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .verification-section {
+            padding: 4rem 0;
+        }
+
+        .verification-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .step-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .step-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: var(--gold);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0 auto 1.5rem;
+        }
+
+        .step-icon {
+            font-size: 3rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+
+        .step-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #1a1a2e;
+        }
+
+        .step-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .benefits-section {
+            background: #f8f9fa;
+            padding: 4rem 0;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .benefit-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .benefit-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #DAA520 0%, #FFD700 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+
+        .benefit-icon i {
+            font-size: 1.8rem;
+            color: white;
+        }
+
+        .benefit-card h4 {
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+            color: #1a1a2e;
+        }
+
+        .documents-section {
+            padding: 4rem 0;
+        }
+
+        .doc-list {
+            max-width: 800px;
+            margin: 2rem auto;
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .doc-item {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .doc-item:last-child {
+            border-bottom: none;
+        }
+
+        .doc-item i {
+            font-size: 2rem;
+            color: var(--gold);
+            margin-right: 1.5rem;
+        }
+
+        .doc-info h4 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: #1a1a2e;
+        }
+
+        .doc-info p {
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .badge-showcase {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+        }
+
+        .badge-display {
+            display: inline-block;
+            background: white;
+            padding: 2rem 3rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .badge-icon {
+            font-size: 5rem;
+            color: var(--gold);
+            margin-bottom: 1rem;
+        }
+
+        .badge-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--gold);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{% url 'home' %}"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>EventFlex</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'home' %}#features">Features</a></li>
+                <li><a href="{% url 'verification_page' %}" class="active">Verification</a></li>
+                <li><a href="{% url 'login_page' %}" class="btn-outline">Login</a></li>
+                <li><a href="{% url 'signup_page' %}" class="btn-primary">Sign Up</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="verification-hero">
+        <div class="container">
+            <h1>Get Verified. Build Trust.</h1>
+            <p>Stand out from the crowd with our verification badge and gain access to premium opportunities</p>
+        </div>
+    </section>
+
+    <!-- Verification Steps -->
+    <section class="verification-section">
+        <div class="container">
+            <h2 class="section-title">How Verification Works</h2>
+            <p class="section-subtitle">A simple 4-step process to verify your identity and credentials</p>
+
+            <div class="verification-steps">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <i class="fas fa-user-plus step-icon"></i>
+                    <h3>Create Profile</h3>
+                    <p>Sign up and complete your profile with accurate information about your skills and experience.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <i class="fas fa-file-upload step-icon"></i>
+                    <h3>Submit Documents</h3>
+                    <p>Upload required identity and credential documents through our secure platform.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <i class="fas fa-search step-icon"></i>
+                    <h3>Verification Review</h3>
+                    <p>Our team reviews your documents and credentials within 24-48 hours.</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <i class="fas fa-certificate step-icon"></i>
+                    <h3>Get Verified Badge</h3>
+                    <p>Once approved, receive your verification badge and unlock premium features.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Required Documents -->
+    <section class="documents-section">
+        <div class="container">
+            <h2 class="section-title">Required Documents</h2>
+            <p class="section-subtitle">What you'll need for verification</p>
+
+            <div class="doc-list">
+                <div class="doc-item">
+                    <i class="fas fa-id-card"></i>
+                    <div class="doc-info">
+                        <h4>Government-Issued ID</h4>
+                        <p>Aadhaar Card, PAN Card, Passport, or Driver's License (clear, readable photo)</p>
+                    </div>
+                </div>
+
+                <div class="doc-item">
+                    <i class="fas fa-home"></i>
+                    <div class="doc-info">
+                        <h4>Proof of Address</h4>
+                        <p>Utility bill, bank statement, or rental agreement (not older than 3 months)</p>
+                    </div>
+                </div>
+
+                <div class="doc-item">
+                    <i class="fas fa-graduation-cap"></i>
+                    <div class="doc-info">
+                        <h4>Professional Credentials</h4>
+                        <p>Certificates, work experience letters, or portfolio showcasing your event work</p>
+                    </div>
+                </div>
+
+                <div class="doc-item">
+                    <i class="fas fa-camera"></i>
+                    <div class="doc-info">
+                        <h4>Profile Photo</h4>
+                        <p>Recent professional photograph with clear face visibility</p>
+                    </div>
+                </div>
+
+                <div class="doc-item">
+                    <i class="fas fa-university"></i>
+                    <div class="doc-info">
+                        <h4>Bank Account Details</h4>
+                        <p>Bank account number and IFSC code for secure payments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section class="benefits-section">
+        <div class="container">
+            <h2 class="section-title">Benefits of Verification</h2>
+            <p class="section-subtitle">Why get verified on EventFlex?</p>
+
+            <div class="benefits-grid">
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h4>Higher Visibility</h4>
+                    <p>Verified profiles appear at the top of search results and get 3x more views than non-verified
+                        ones.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h4>Build Trust</h4>
+                    <p>The verification badge shows clients you're legitimate, increasing your chances of getting hired.
+                    </p>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h4>Premium Jobs</h4>
+                    <p>Access exclusive high-paying opportunities available only to verified professionals.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>Payment Protection</h4>
+                    <p>Verified users get priority in payment disputes and faster escrow release.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <h4>Priority Support</h4>
+                    <p>Get faster response times and dedicated support from our team.</p>
+                </div>
+
+                <div class="benefit-card">
+                    <div class="benefit-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Career Growth</h4>
+                    <p>Verified professionals earn 40% more on average and get repeat bookings.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Badge Showcase -->
+    <section class="badge-showcase">
+        <div class="container">
+            <h2>Your Verification Badge</h2>
+            <p>This badge will appear on your profile, making you stand out</p>
+            <div class="badge-display">
+                <i class="fas fa-check-circle badge-icon"></i>
+                <div class="badge-text">Verified Professional</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to Get Verified?</h2>
+            <p>Join thousands of verified professionals on EventFlex</p>
+            <div class="cta-buttons">
+                <a href="{% url 'signup_page' %}" class="btn-primary">Start Verification</a>
+                <a href="{% url 'faqs_page' %}" class="btn-outline">View FAQs</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2025 EventFlex. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+
+</html>

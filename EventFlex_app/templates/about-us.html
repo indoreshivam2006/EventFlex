@@ -1,0 +1,421 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - EventFlex</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .about-hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 6rem 0 4rem;
+            text-align: center;
+        }
+
+        .about-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+        }
+
+        .about-hero p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .mission-section {
+            padding: 4rem 0;
+        }
+
+        .mission-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+            margin-top: 2rem;
+        }
+
+        .mission-text h2 {
+            font-size: 2.5rem;
+            color: #1a1a2e;
+            margin-bottom: 1rem;
+        }
+
+        .mission-text p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+
+        .mission-icon {
+            font-size: 15rem;
+            color: var(--gold);
+            text-align: center;
+            opacity: 0.2;
+        }
+
+        .values-section {
+            background: #f8f9fa;
+            padding: 4rem 0;
+        }
+
+        .values-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .value-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .value-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .value-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #DAA520 0%, #FFD700 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+
+        .value-icon i {
+            font-size: 2.5rem;
+            color: white;
+        }
+
+        .value-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: #1a1a2e;
+        }
+
+        .stats-section {
+            padding: 4rem 0;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+            margin-top: 2rem;
+        }
+
+        .stat-card {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: var(--gold);
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .team-section {
+            padding: 4rem 0;
+        }
+
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .team-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .team-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .team-image {
+            height: 280px;
+            background: linear-gradient(135deg, #DAA520 0%, #FFD700 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: white;
+        }
+
+        .team-info {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .team-name {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #1a1a2e;
+            margin-bottom: 0.5rem;
+        }
+
+        .team-role {
+            color: var(--gold);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .team-bio {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .mission-content {
+                grid-template-columns: 1fr;
+            }
+
+            .mission-icon {
+                font-size: 8rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{% url 'home' %}"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>EventFlex</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'home' %}#features">Features</a></li>
+                <li><a href="{% url 'about_us_page' %}" class="active">About Us</a></li>
+                <li><a href="{% url 'login_page' %}" class="btn-outline">Login</a></li>
+                <li><a href="{% url 'signup_page' %}" class="btn-primary">Sign Up</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="about-hero">
+        <div class="container">
+            <h1>About EventFlex</h1>
+            <p>Revolutionizing the event staffing industry through technology and trust</p>
+        </div>
+    </section>
+
+    <!-- Mission Section -->
+    <section class="mission-section">
+        <div class="container">
+            <div class="mission-content">
+                <div class="mission-text">
+                    <h2>Our Mission</h2>
+                    <p>At EventFlex, we believe that every event deserves the perfect team. Our mission is to connect
+                        talented event professionals with organizers who need them, creating opportunities and enabling
+                        unforgettable experiences.</p>
+                    <p>We're building a transparent, efficient, and trustworthy marketplace where both organizers and
+                        professionals can thrive. Through innovative technology and a commitment to excellence, we're
+                        transforming how the event industry works.</p>
+                    <p><strong>Our Vision:</strong> To become India's most trusted platform for event staffing,
+                        empowering 1 million event professionals and facilitating 10 million successful events by 2030.
+                    </p>
+                </div>
+                <div class="mission-icon">
+                    <i class="fas fa-bullseye"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Values Section -->
+    <section class="values-section">
+        <div class="container">
+            <h2 class="section-title">Our Core Values</h2>
+            <div class="values-grid">
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3>Trust</h3>
+                    <p>We build trust through transparency, verification, and secure payment systems that protect both
+                        organizers and professionals.</p>
+                </div>
+
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <h3>Innovation</h3>
+                    <p>We continuously innovate to make event staffing faster, smarter, and more efficient for everyone
+                        involved.</p>
+                </div>
+
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <h3>Excellence</h3>
+                    <p>We're committed to excellence in everything we do, from product features to customer support.</p>
+                </div>
+
+                <div class="value-card">
+                    <div class="value-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Community</h3>
+                    <p>We're building a vibrant community where event professionals and organizers support each other's
+                        success.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <h2 class="section-title" style="color: white;">EventFlex by the Numbers</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <span class="stat-number">50,000+</span>
+                    <span class="stat-label">Registered Professionals</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">10,000+</span>
+                    <span class="stat-label">Event Organizers</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">100,000+</span>
+                    <span class="stat-label">Events Completed</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">₹50Cr+</span>
+                    <span class="stat-label">Payments Processed</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">4.8/5</span>
+                    <span class="stat-label">Average Rating</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-number">25+</span>
+                    <span class="stat-label">Cities Covered</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section">
+        <div class="container">
+            <h2 class="section-title">Meet Our Team</h2>
+            <p class="section-subtitle">The passionate people behind EventFlex</p>
+            <div class="team-grid">
+                <div class="team-card">
+                    <div class="team-image">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="team-info">
+                        <div class="team-name">Arjun Mehta</div>
+                        <div class="team-role">Founder & CEO</div>
+                        <p class="team-bio">Former event manager with 15 years of industry experience. Passionate about
+                            solving real problems through technology.</p>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-image">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="team-info">
+                        <div class="team-name">Sneha Reddy</div>
+                        <div class="team-role">Chief Technology Officer</div>
+                        <p class="team-bio">Tech visionary with expertise in AI and machine learning. Leading our
+                            product innovation.</p>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-image">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="team-info">
+                        <div class="team-name">Vikram Singh</div>
+                        <div class="team-role">Head of Operations</div>
+                        <p class="team-bio">Operations expert ensuring smooth experiences for all users. 10+ years in
+                            logistics and operations.</p>
+                    </div>
+                </div>
+
+                <div class="team-card">
+                    <div class="team-image">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="team-info">
+                        <div class="team-name">Priya Kapoor</div>
+                        <div class="team-role">Head of Customer Success</div>
+                        <p class="team-bio">Customer advocate dedicated to ensuring every user has a fantastic
+                            experience on EventFlex.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Join the EventFlex Community</h2>
+            <p>Be part of India's fastest-growing event staffing platform</p>
+            <div class="cta-buttons">
+                <a href="{% url 'signup_page' %}" class="btn-primary">Get Started</a>
+                <a href="{% url 'contact_page' %}" class="btn-outline">Contact Us</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2025 EventFlex. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+
+</html>

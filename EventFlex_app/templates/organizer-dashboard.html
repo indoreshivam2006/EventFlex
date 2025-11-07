@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body class="dashboard-page" data-requires-auth="true" data-user-type="organizer">
     <!-- Dashboard Navigation -->
     <nav class="dashboard-nav">
@@ -24,7 +26,8 @@
             <span class="nav-link-text">Login</span>
             <a href="{% url 'signup_page' %}" class="btn-primary-small">Sign Up</a>
             <div class="user-profile">
-                <img src="https://ui-avatars.com/api/?name=Test&background=6366f1&color=fff" alt="Profile" id="user-avatar">
+                <img src="https://ui-avatars.com/api/?name=Test&background=6366f1&color=fff" alt="Profile"
+                    id="user-avatar">
                 <span id="user-name-display">Test</span>
             </div>
         </div>
@@ -44,7 +47,7 @@
                     <a href="#discover"><i class="fas fa-search"></i> Discover Talent</a>
                 </li>
                 <li>
-                    <a href="#my-jobs"><i class="fas fa-briefcase"></i> My Jobs</a>
+                    <a href="#my-jobs"><i class="fas fa-briefcase"></i> My Events</a>
                 </li>
                 <li>
                     <a href="#payments"><i class="fas fa-wallet"></i> Payments</a>
@@ -56,7 +59,7 @@
                     <a href="#profile"><i class="fas fa-user"></i> Profile</a>
                 </li>
                 <li>
-                    <a href="{% url 'index' %}" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    <a href="{% url 'home' %}" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </li>
             </ul>
         </aside>
@@ -144,7 +147,8 @@
                             </div>
                             <div class="form-group">
                                 <label>Event Type *</label>
-                                <input type="text" name="event_type" list="event-type-suggestions" placeholder="Select or type event type" required>
+                                <input type="text" name="event_type" list="event-type-suggestions"
+                                    placeholder="Select or type event type" required>
                                 <datalist id="event-type-suggestions">
                                     <option value="Event Staffing">
                                     <option value="Conference">
@@ -162,7 +166,8 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Role/Position *</label>
-                                <input type="text" name="role" list="role-suggestions" placeholder="e.g., Registration Desk Staff" required>
+                                <input type="text" name="role" list="role-suggestions"
+                                    placeholder="e.g., Registration Desk Staff" required>
                                 <datalist id="role-suggestions">
                                     <!-- Dynamic suggestions will be populated here -->
                                 </datalist>
@@ -204,15 +209,19 @@
                             <label>Location *</label>
                             <div class="location-input-wrapper" style="position: relative;">
                                 <i class="fas fa-map-marker-alt"></i>
-                                <input type="text" name="location" id="job-location-input" list="location-suggestions" placeholder="Enter city or venue address (e.g., Mumbai, Bangalore Convention Center)" required>
-                                <button type="button" id="get-current-location-btn" class="current-location-btn" title="Use my current location">
+                                <input type="text" name="location" id="job-location-input" list="location-suggestions"
+                                    placeholder="Enter city or venue address (e.g., Mumbai, Bangalore Convention Center)"
+                                    required>
+                                <button type="button" id="get-current-location-btn" class="current-location-btn"
+                                    title="Use my current location">
                                     <i class="fas fa-crosshairs"></i> Current Location
                                 </button>
                                 <datalist id="location-suggestions">
                                     <!-- Dynamic suggestions will be populated here -->
                                 </datalist>
                             </div>
-                            <small class="form-hint">Enter the city or full venue address where the event will take place, or use your current location</small>
+                            <small class="form-hint">Enter the city or full venue address where the event will take
+                                place, or use your current location</small>
                         </div>
 
                         <div class="form-row">
@@ -232,21 +241,26 @@
 
                         <div class="form-group">
                             <label>Job Description *</label>
-                            <textarea name="description" rows="5" placeholder="Describe the role, responsibilities, and requirements..." required></textarea>
+                            <textarea name="description" rows="5"
+                                placeholder="Describe the role, responsibilities, and requirements..."
+                                required></textarea>
                         </div>
 
                         <div class="form-group">
                             <label>Requirements & Preferences</label>
                             <div class="checkbox-group">
-                                <label><input type="checkbox" name="requirements" value="experience"> Experience Required (1+ years)</label>
+                                <label><input type="checkbox" name="requirements" value="experience"> Experience
+                                    Required (1+ years)</label>
                                 <label><input type="checkbox" name="requirements" value="kyc"> KYC Verified Only</label>
-                                <label><input type="checkbox" name="requirements" value="video"> Video Intro Required</label>
-                                <label><input type="checkbox" name="requirements" value="badge"> Elite/Pro Badge Preferred</label>
+                                <label><input type="checkbox" name="requirements" value="video"> Video Intro
+                                    Required</label>
+                                <label><input type="checkbox" name="requirements" value="badge"> Elite/Pro Badge
+                                    Preferred</label>
                             </div>
                         </div>
 
                         <div class="form-actions">
-                            <button type="button" class="btn-outline">Save as Draft</button>
+                            <button type="button" id="saveDraftBtn" class="btn-outline">Save as Draft</button>
                             <button type="submit" class="btn-primary">Post Job</button>
                         </div>
                     </form>
@@ -261,7 +275,8 @@
                 <div class="search-filters">
                     <div class="search-bar">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="talent-search-input" placeholder="Search by name, skills, or location...">
+                        <input type="text" id="talent-search-input"
+                            placeholder="Search by name, skills, or location...">
                     </div>
                     <div class="filter-group">
                         <div class="filter-input-wrapper">
@@ -305,133 +320,40 @@
                 </div>
 
                 <div class="jobs-list" data-tab-content="active-jobs">
-                    <div class="job-card">
-                        <div class="job-header">
-                            <div>
-                                <h3>Tech Conference 2025</h3>
-                                <p><i class="fas fa-map-marker-alt"></i> Mumbai Convention Center • Nov 15, 2025</p>
-                            </div>
-                            <span class="status-badge confirmed">Active</span>
-                        </div>
-                        <div class="job-details">
-                            <div class="job-stat">
-                                <span class="label">Staff Hired:</span>
-                                <span class="value">12/12</span>
-                            </div>
-                            <div class="job-stat">
-                                <span class="label">Budget:</span>
-                                <span class="value">₹36,000</span>
-                            </div>
-                            <div class="job-stat">
-                                <span class="label">Applications:</span>
-                                <span class="value">28</span>
-                            </div>
-                        </div>
-                        <div class="job-actions">
-                            <button class="btn-outline">View Details</button>
-                            <button class="btn-outline">Manage Staff</button>
-                            <button class="btn-primary" data-toast="Attendance tracker is live. Share the QR with your team.">Track Attendance</button>
-                        </div>
-                    </div>
-
-                    <div class="job-card">
-                        <div class="job-header">
-                            <div>
-                                <h3>Wedding Reception</h3>
-                                <p><i class="fas fa-map-marker-alt"></i> Delhi Banquet Hall • Nov 25, 2025</p>
-                            </div>
-                            <span class="status-badge pending">Hiring</span>
-                        </div>
-                        <div class="job-details">
-                            <div class="job-stat">
-                                <span class="label">Staff Hired:</span>
-                                <span class="value">8/10</span>
-                            </div>
-                            <div class="job-stat">
-                                <span class="label">Budget:</span>
-                                <span class="value">₹18,000</span>
-                            </div>
-                            <div class="job-stat">
-                                <span class="label">Applications:</span>
-                                <span class="value">15</span>
-                            </div>
-                        </div>
-                        <div class="job-actions">
-                            <button class="btn-outline">View Details</button>
-                            <button class="btn-primary" data-toast="15 new applications waiting. Review them now!">Review Applications</button>
-                        </div>
-                    </div>
+                    <p class="empty-state">Loading active jobs...</p>
                 </div>
 
-                <div class="jobs-list" data-tab-content="completed-jobs" hidden>
-                    <div class="job-card">
-                        <div class="job-header">
-                            <div>
-                                <h3>Leadership Summit 2025</h3>
-                                <p><i class="fas fa-map-marker-alt"></i> Hyderabad Expo • Oct 20, 2025</p>
-                            </div>
-                            <span class="status-badge completed">Completed</span>
-                        </div>
-                        <div class="job-details">
-                            <div class="job-stat">
-                                <span class="label">Staff Hired:</span>
-                                <span class="value">18/18</span>
-                            </div>
-                            <div class="job-stat">
-                                <span class="label">Budget:</span>
-                                <span class="value">₹54,000</span>
-                            </div>
-                            <div class="job-stat">
-                                <span class="label">Rating:</span>
-                                <span class="value">4.9 ★</span>
-                            </div>
-                        </div>
-                        <div class="job-actions">
-                            <button class="btn-outline">View Summary</button>
-                            <button class="btn-outline">Download Report</button>
-                        </div>
-                    </div>
+                <div class="jobs-list" data-tab-content="completed-jobs" style="display: none;">
+                    <p class="empty-state">Loading completed jobs...</p>
                 </div>
 
-                <div class="jobs-list" data-tab-content="draft-jobs" hidden>
-                    <div class="job-card">
-                        <div class="job-header">
-                            <div>
-                                <h3>Luxury Wedding Weekend</h3>
-                                <p><i class="fas fa-map-marker-alt"></i> Goa Beach Resort • Dec 18, 2025</p>
-                            </div>
-                            <span class="status-badge pending">Draft</span>
-                        </div>
-                        <p class="draft-note">Finish the job details and publish when you're ready to start hiring.</p>
-                        <div class="job-actions">
-                            <button class="btn-primary">Continue Editing</button>
-                            <button class="btn-outline">Discard</button>
-                        </div>
-                    </div>
+                <div class="jobs-list" data-tab-content="draft-jobs" style="display: none;">
+                    <p class="empty-state">Loading draft jobs...</p>
                 </div>
             </section>
 
             <!-- Payments Section -->
             <section id="payments" class="dashboard-section">
                 <h1>Payments & Billing</h1>
-                
+
                 <div class="payment-overview">
                     <div class="payment-card">
                         <h3>Account Balance</h3>
-                        <p class="amount">₹45,000</p>
+                        <p class="amount" id="organizer-wallet-balance">₹0</p>
                         <button class="btn-primary" onclick="showAddFundsModal()">Add Funds</button>
                     </div>
                     <div class="payment-card">
                         <h3>Pending Payments</h3>
-                        <p class="amount">₹12,000</p>
-                        <button class="btn-outline">View Details</button>
+                        <p class="amount" id="organizer-pending-payments">₹0</p>
+                        <button class="btn-outline" onclick="showPendingPaymentsModal()">View Details</button>
                     </div>
                     <div class="payment-card">
-                        <h3>Total Spent (This Month)</h3>
-                        <p class="amount">₹2,50,000</p>
+                        <h3>Total Released</h3>
+                        <p class="amount" id="organizer-total-released">₹0</p>
+                        <button class="btn-outline" onclick="showReleasedPaymentsModal()">Release History</button>
                     </div>
                 </div>
-            </section>  
+            </section>
 
             <!-- Messages Section -->
             <section id="messages" class="dashboard-section">
@@ -444,7 +366,8 @@
                         </div>
                         <div class="conversation-list">
                             <div class="conversation-item active">
-                                <img src="https://ui-avatars.com/api/?name=Priya+Kumar&background=6366f1&color=fff" alt="Priya Kumar">
+                                <img src="https://ui-avatars.com/api/?name=Priya+Kumar&background=6366f1&color=fff"
+                                    alt="Priya Kumar">
                                 <div class="conversation-info">
                                     <h4>Priya Kumar</h4>
                                     <p>Thanks! See you at the event...</p>
@@ -452,7 +375,8 @@
                                 <span class="time">2m</span>
                             </div>
                             <div class="conversation-item">
-                                <img src="https://ui-avatars.com/api/?name=Rahul+Singh&background=10b981&color=fff" alt="Rahul Singh">
+                                <img src="https://ui-avatars.com/api/?name=Rahul+Singh&background=10b981&color=fff"
+                                    alt="Rahul Singh">
                                 <div class="conversation-info">
                                     <h4>Rahul Singh</h4>
                                     <p>What time should I arrive?</p>
@@ -463,7 +387,8 @@
                     </div>
                     <div class="chat-area">
                         <div class="chat-header">
-                            <img src="https://ui-avatars.com/api/?name=Priya+Kumar&background=6366f1&color=fff" alt="Priya Kumar">
+                            <img src="https://ui-avatars.com/api/?name=Priya+Kumar&background=6366f1&color=fff"
+                                alt="Priya Kumar">
                             <div>
                                 <h4>Priya Kumar</h4>
                                 <p>Active now</p>
@@ -496,14 +421,17 @@
                 <h1>Profile Settings</h1>
                 <div class="profile-card">
                     <div class="profile-header">
-                        <img src="https://ui-avatars.com/api/?name=Event+Organizer&background=6366f1&color=fff" alt="Profile" class="profile-image-large">
+                        <img src="https://ui-avatars.com/api/?name=Event+Organizer&background=6366f1&color=fff"
+                            alt="Profile" class="profile-image-large" id="organizer-profile-image">
                         <div class="profile-header-info">
                             <h2>Event Organizer</h2>
                             <p class="profile-role">Event Organizer</p>
                         </div>
-                        <button class="btn-outline">Change Photo</button>
+                        <input type="file" id="organizer-photo-input" accept="image/*" style="display: none;">
+                        <button class="btn-outline"
+                            onclick="document.getElementById('organizer-photo-input').click()">Change Photo</button>
                     </div>
-                    <form class="profile-form">
+                    <form class="profile-form" onsubmit="handleProfileSave(event)" id="profile-form">
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Company/Organization Name</label>
@@ -511,7 +439,7 @@
                             </div>
                             <div class="form-group">
                                 <label>Contact Person</label>
-                                <input type="text" name="contact_person" value="Amit Sharma">
+                                <input type="text" name="first_name" value="Amit Sharma">
                             </div>
                         </div>
                         <div class="form-row">
@@ -537,7 +465,8 @@
                         </div>
                         <div class="form-group">
                             <label>About Organization</label>
-                            <textarea name="bio" rows="4">Leading event management company specializing in corporate and tech events.</textarea>
+                            <textarea name="bio"
+                                rows="4">Leading event management company specializing in corporate and tech events.</textarea>
                         </div>
                         <div class="form-actions">
                             <button type="button" class="btn-outline">Cancel</button>
@@ -572,6 +501,37 @@
                     <button type="submit" class="btn-primary">Add Funds</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Pending Payments Modal -->
+    <div id="pending-payments-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 900px;">
+            <span class="close-modal" onclick="closePendingPaymentsModal()">&times;</span>
+            <h2>Pending Payments</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">Staff hired for active events. Payments will be released when
+                events are marked as finished.</p>
+            <div id="pending-payments-list" style="max-height: 500px; overflow-y: auto;">
+                <!-- Pending payments will be loaded here -->
+            </div>
+            <div class="form-actions" style="margin-top: 1.5rem;">
+                <button class="btn-primary" onclick="closePendingPaymentsModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Released Payments Modal -->
+    <div id="released-payments-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 900px;">
+            <span class="close-modal" onclick="closeReleasedPaymentsModal()">&times;</span>
+            <h2>Released Payments History</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">All payments released to staff for completed events.</p>
+            <div id="released-payments-list" style="max-height: 500px; overflow-y: auto;">
+                <!-- Released payments will be loaded here -->
+            </div>
+            <div class="form-actions" style="margin-top: 1.5rem;">
+                <button class="btn-primary" onclick="closeReleasedPaymentsModal()">Close</button>
+            </div>
         </div>
     </div>
 
@@ -612,17 +572,20 @@
             <h2 style="margin-bottom: 1.5rem; color: var(--gold);">
                 <i class="fas fa-file-alt"></i> Application Details
             </h2>
-            
+
             <div id="application-detail-content">
                 <!-- Header Section -->
-                <div class="application-header" style="background: rgba(218, 165, 32, 0.1); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
+                <div class="application-header"
+                    style="background: rgba(218, 165, 32, 0.1); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem;">
                         <div>
                             <h3 id="applicant-name" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></h3>
                             <p id="application-job-title" style="color: var(--gold); font-size: 1.1rem;"></p>
                         </div>
                         <div>
-                            <span id="application-status-badge" class="badge" style="padding: 0.5rem 1rem; font-size: 1rem;"></span>
+                            <span id="application-status-badge" class="badge"
+                                style="padding: 0.5rem 1rem; font-size: 1rem;"></span>
                         </div>
                     </div>
                     <div style="margin-top: 1rem; display: flex; gap: 2rem; flex-wrap: wrap;">
@@ -638,18 +601,42 @@
                     </div>
                 </div>
 
+                <!-- AI Rating Section -->
+                <div class="detail-section" id="ai-rating-section"
+                    style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(218, 165, 32, 0.15) 0%, rgba(184, 134, 11, 0.1) 100%); padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--gold);">
+                    <h3
+                        style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-robot"></i> AI Application Rating
+                    </h3>
+                    <div style="display: flex; align-items: center; gap: 2rem; flex-wrap: wrap;">
+                        <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div id="ai-rating-stars" style="font-size: 2rem; color: #FFD700;"></div>
+                            <div style="font-size: 2.5rem; font-weight: bold; color: var(--gold);" id="ai-rating-score">
+                            </div>
+                        </div>
+                        <div style="flex: 1; min-width: 200px;">
+                            <div id="ai-rating-details"
+                                style="white-space: pre-wrap; line-height: 1.8; font-size: 0.95rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 6px;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Professional Info Section -->
                 <div class="detail-section" style="margin-bottom: 2rem;">
-                    <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                    <h3
+                        style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
                         <i class="fas fa-user-tie"></i> Professional Information
                     </h3>
-                    <div class="detail-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+                    <div class="detail-grid"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
                         <div class="detail-item">
                             <strong style="color: #ccc; display: block; margin-bottom: 0.5rem;">Experience:</strong>
                             <span id="applicant-experience"></span> years
                         </div>
                         <div class="detail-item">
-                            <strong style="color: #ccc; display: block; margin-bottom: 0.5rem;">Expected Compensation:</strong>
+                            <strong style="color: #ccc; display: block; margin-bottom: 0.5rem;">Expected
+                                Compensation:</strong>
                             <span id="applicant-compensation"></span>
                         </div>
                     </div>
@@ -657,7 +644,8 @@
 
                 <!-- Skills Section -->
                 <div class="detail-section" style="margin-bottom: 2rem;">
-                    <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                    <h3
+                        style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
                         <i class="fas fa-tools"></i> Skills & Expertise
                     </h3>
                     <div id="applicant-skills" style="white-space: pre-wrap; line-height: 1.6;"></div>
@@ -665,7 +653,8 @@
 
                 <!-- Availability Section -->
                 <div class="detail-section" style="margin-bottom: 2rem;">
-                    <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                    <h3
+                        style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
                         <i class="fas fa-clock"></i> Availability
                     </h3>
                     <div id="applicant-availability" style="white-space: pre-wrap; line-height: 1.6;"></div>
@@ -673,27 +662,32 @@
 
                 <!-- Portfolio Section -->
                 <div class="detail-section" style="margin-bottom: 2rem;" id="portfolio-section">
-                    <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                    <h3
+                        style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
                         <i class="fas fa-link"></i> Portfolio
                     </h3>
-                    <a id="applicant-portfolio" href="#" target="_blank" style="color: var(--gold); text-decoration: none;">
+                    <a id="applicant-portfolio" href="#" target="_blank"
+                        style="color: var(--gold); text-decoration: none;">
                         <i class="fas fa-external-link-alt"></i> View Portfolio
                     </a>
                 </div>
 
                 <!-- Resume/CV Section -->
                 <div class="detail-section" style="margin-bottom: 2rem;" id="resume-section">
-                    <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                    <h3
+                        style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
                         <i class="fas fa-file-pdf"></i> Resume / CV
                     </h3>
-                    <a id="applicant-resume" href="#" target="_blank" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--gold); text-decoration: none; background: rgba(218, 165, 32, 0.1); padding: 0.75rem 1rem; border-radius: 6px; transition: all 0.3s ease;">
+                    <a id="applicant-resume" href="#" target="_blank"
+                        style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--gold); text-decoration: none; background: rgba(218, 165, 32, 0.1); padding: 0.75rem 1rem; border-radius: 6px; transition: all 0.3s ease;">
                         <i class="fas fa-download"></i> <span id="resume-filename">Download Resume</span>
                     </a>
                 </div>
 
                 <!-- Previous Experience Section -->
                 <div class="detail-section" style="margin-bottom: 2rem;">
-                    <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                    <h3
+                        style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
                         <i class="fas fa-history"></i> Previous Events & Experience
                     </h3>
                     <div id="applicant-previous-events" style="white-space: pre-wrap; line-height: 1.6;"></div>
@@ -701,7 +695,8 @@
 
                 <!-- Why Interested Section -->
                 <div class="detail-section" style="margin-bottom: 2rem;">
-                    <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                    <h3
+                        style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
                         <i class="fas fa-comment-dots"></i> Why Interested
                     </h3>
                     <div id="applicant-why-interested" style="white-space: pre-wrap; line-height: 1.6;"></div>
@@ -709,16 +704,20 @@
 
                 <!-- Cover Message Section -->
                 <div class="detail-section" style="margin-bottom: 2rem;" id="cover-message-section">
-                    <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                    <h3
+                        style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
                         <i class="fas fa-envelope-open-text"></i> Cover Message
                     </h3>
-                    <div id="applicant-cover-message" style="white-space: pre-wrap; line-height: 1.6; font-style: italic;"></div>
+                    <div id="applicant-cover-message"
+                        style="white-space: pre-wrap; line-height: 1.6; font-style: italic;"></div>
                 </div>
 
                 <!-- Action Buttons (only show if pending) -->
-                <div id="application-actions" class="modal-actions" style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1.5rem; border-top: 2px solid rgba(218, 165, 32, 0.3);">
+                <div id="application-actions" class="modal-actions"
+                    style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1.5rem; border-top: 2px solid rgba(218, 165, 32, 0.3);">
                     <button type="button" class="btn-outline" onclick="closeApplicationDetailModal()">Close</button>
-                    <button type="button" class="btn-outline" style="background: #dc3545; border-color: #dc3545;" onclick="handleRejectApplication()">
+                    <button type="button" class="btn-outline" style="background: #dc3545; border-color: #dc3545;"
+                        onclick="handleRejectApplication()">
                         <i class="fas fa-times-circle"></i> Reject
                     </button>
                     <button type="button" class="btn-primary" onclick="handleAcceptApplication()">
@@ -729,7 +728,109 @@
         </div>
     </div>
 
+    <!-- Event Details Modal -->
+    <div id="event-details-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <span class="close-modal" onclick="closeEventDetailsModal()">&times;</span>
+            <h2 style="margin-bottom: 1.5rem; color: var(--gold);">
+                <i class="fas fa-briefcase"></i> Event Details
+            </h2>
+
+            <div id="job-details-content">
+                <!-- Event Information Section -->
+                <div class="detail-section"
+                    style="background: rgba(218, 165, 32, 0.1); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: start; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <h3 id="event-detail-title" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></h3>
+                            <p id="event-detail-type" style="color: var(--gold); font-size: 1.1rem;"></p>
+                        </div>
+                        <span id="event-detail-status" class="status-badge"></span>
+                    </div>
+
+                    <div class="detail-grid"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                        <div>
+                            <i class="fas fa-map-marker-alt"></i> <strong>Location:</strong><br>
+                            <span id="event-detail-location"></span>
+                        </div>
+                        <div>
+                            <i class="fas fa-calendar"></i> <strong>Date:</strong><br>
+                            <span id="event-detail-date"></span>
+                        </div>
+                        <div>
+                            <i class="fas fa-clock"></i> <strong>Time:</strong><br>
+                            <span id="event-detail-time"></span>
+                        </div>
+                        <div>
+                            <i class="fas fa-users"></i> <strong>Staff Needed:</strong><br>
+                            <span id="event-detail-staff-needed"></span>
+                        </div>
+                        <div>
+                            <i class="fas fa-money-bill-wave"></i> <strong>Pay Rate:</strong><br>
+                            <span id="event-detail-pay"></span>
+                        </div>
+                        <div>
+                            <i class="fas fa-user-tie"></i> <strong>Role:</strong><br>
+                            <span id="event-detail-role"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Description Section -->
+                <div class="detail-section" style="margin-bottom: 2rem;">
+                    <h3
+                        style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                        <i class="fas fa-info-circle"></i> Description
+                    </h3>
+                    <p id="event-detail-description" style="line-height: 1.6; white-space: pre-wrap;"></p>
+                </div>
+
+                <!-- Requirements & Skills -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                    <div class="detail-section">
+                        <h3
+                            style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                            <i class="fas fa-clipboard-check"></i> Requirements
+                        </h3>
+                        <p id="event-detail-requirements" style="line-height: 1.6;"></p>
+                    </div>
+                    <div class="detail-section">
+                        <h3
+                            style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                            <i class="fas fa-star"></i> Required Skills
+                        </h3>
+                        <p id="event-detail-skills" style="line-height: 1.6;"></p>
+                    </div>
+                </div>
+
+                <!-- Hired Staff Section -->
+                <div class="detail-section" style="margin-bottom: 2rem;">
+                    <h3
+                        style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                        <i class="fas fa-user-check"></i> Hired Staff (<span id="hired-staff-count">0</span>)
+                    </h3>
+                    <div id="hired-staff-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <!-- Staff cards will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="modal-actions"
+                    style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1.5rem; border-top: 2px solid rgba(218, 165, 32, 0.3);">
+                    <button type="button" class="btn-outline" onclick="closeEventDetailsModal()">Close</button>
+                    <button type="button" id="finish-event-btn" class="btn-primary"
+                        style="background: #10b981; border-color: #10b981;" onclick="handleFinishEvent()">
+                        <i class="fas fa-check-circle"></i> Finish Event
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="{% static 'js/script.js' %}"></script>
 </body>
+
 </html>

@@ -1,0 +1,473 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQs - EventFlex</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .faq-hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 6rem 0 4rem;
+            text-align: center;
+        }
+
+        .faq-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+        }
+
+        .faq-hero p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+        }
+
+        .faq-section {
+            padding: 4rem 0;
+        }
+
+        .faq-categories {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 0.75rem 1.5rem;
+            background: white;
+            border: 2px solid var(--gold);
+            border-radius: 25px;
+            color: #1a1a2e;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+
+        .category-btn:hover,
+        .category-btn.active {
+            background: var(--gold);
+            color: white;
+        }
+
+        .faq-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .faq-category-section {
+            margin-bottom: 3rem;
+        }
+
+        .faq-category-title {
+            font-size: 2rem;
+            color: var(--gold);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 3px solid var(--gold);
+        }
+
+        .faq-item {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .faq-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .faq-question {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #1a1a2e;
+        }
+
+        .faq-question i {
+            color: var(--gold);
+            transition: transform 0.3s ease;
+        }
+
+        .faq-item.active .faq-question i {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            margin-top: 1rem;
+            color: #666;
+            line-height: 1.6;
+            display: none;
+        }
+
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+
+        .search-box {
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--gold);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 1.25rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{% url 'home' %}"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>EventFlex</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'home' %}#features">Features</a></li>
+                <li><a href="{% url 'faqs_page' %}" class="active">FAQs</a></li>
+                <li><a href="{% url 'login_page' %}" class="btn-outline">Login</a></li>
+                <li><a href="{% url 'signup_page' %}" class="btn-primary">Sign Up</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="faq-hero">
+        <div class="container">
+            <h1>Frequently Asked Questions</h1>
+            <p>Find answers to common questions about EventFlex</p>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section">
+        <div class="container">
+            <!-- Search Box -->
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="faqSearch" placeholder="Search for answers...">
+            </div>
+
+            <div class="faq-container">
+                <!-- Getting Started -->
+                <div class="faq-category-section" data-category="getting-started">
+                    <h2 class="faq-category-title"><i class="fas fa-rocket"></i> Getting Started</h2>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>How do I sign up on EventFlex?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Click on the "Sign Up" button in the top right corner. You'll need to choose whether you're
+                            an event organizer or event professional, provide your email, create a password, and
+                            complete your profile. The entire process takes less than 5 minutes.
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>Is EventFlex free to use?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Yes! EventFlex offers a free plan that includes up to 5 job posts per month for organizers.
+                            Event professionals can create profiles and apply for jobs completely free. We also offer
+                            premium plans with additional features for growing businesses.
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>What types of events can I find staff for?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            EventFlex supports all types of events including weddings, corporate events, conferences,
+                            exhibitions, concerts, private parties, festivals, and more. You can find specialized staff
+                            for any event type.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- For Event Organizers -->
+                <div class="faq-category-section" data-category="organizers">
+                    <h2 class="faq-category-title"><i class="fas fa-users"></i> For Event Organizers</h2>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>How do I post a job?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            After logging in, go to your Organizer Dashboard and click "Create New Job". Fill in the
+                            event details including title, description, date, location, roles needed, and compensation.
+                            You can save as draft or publish immediately to start receiving applications.
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>How does the payment system work?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            EventFlex uses a secure escrow system. When you accept a staff member, you commit the
+                            payment amount to escrow. After the event is completed, you release the payment which goes
+                            directly to the staff member's wallet. They can then withdraw to their bank account. This
+                            protects both parties.
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>Can I hire multiple staff for one event?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Absolutely! You can accept as many applications as you need for a single event. The platform
+                            automatically calculates the total payment commitment and ensures you have sufficient funds
+                            before accepting each application.
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>What if I need to cancel after accepting staff?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            If you need to cancel, contact the staff member through our messaging system as soon as
+                            possible. Depending on the cancellation timing and terms agreed upon, you may need to
+                            provide partial compensation. Our support team can help mediate if needed.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- For Event Professionals -->
+                <div class="faq-category-section" data-category="professionals">
+                    <h2 class="faq-category-title"><i class="fas fa-user-tie"></i> For Event Professionals</h2>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>How do I find jobs?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Log in to your Staff Portal and browse available jobs. You can filter by event type, date,
+                            location, and pay rate. Use the search function to find specific opportunities. Our AI
+                            matching also recommends jobs that fit your profile.
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>How do I get verified?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Go to your profile settings and click "Get Verified". You'll need to upload
+                            government-issued ID, proof of address, and professional credentials. Our team reviews
+                            applications within 24-48 hours. Verified professionals get 3x more job offers!
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>When do I get paid?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            After completing the event, the organizer releases the payment from escrow. Funds are
+                            immediately added to your EventFlex wallet. You can then withdraw to your bank account
+                            anytime. Bank transfers typically complete within 1-2 business days.
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>Can I work multiple events at once?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Yes! As long as the event dates and times don't conflict, you can apply for and work as many
+                            events as you want. Many professionals work 10-15 events per month on EventFlex.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payments & Security -->
+                <div class="faq-category-section" data-category="payments">
+                    <h2 class="faq-category-title"><i class="fas fa-shield-alt"></i> Payments & Security</h2>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>Is my payment information secure?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Yes! We use bank-level encryption (256-bit SSL) to protect all financial data. We never
+                            store complete payment card information. All transactions are processed through secure
+                            payment gateways compliant with PCI DSS standards.
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>What payment methods do you accept?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            We accept all major credit/debit cards, UPI, net banking, and digital wallets. For
+                            withdrawals, you'll need to provide bank account details (account number, IFSC code).
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>Are there any fees?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            EventFlex charges a 5% service fee on successful bookings. This fee covers platform
+                            maintenance, payment processing, customer support, and continuous feature improvements.
+                            There are no hidden charges.
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>What if there's a payment dispute?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            If there's a dispute between organizer and staff, contact our support team immediately. We
+                            review all communication, event details, and evidence from both parties. As funds are held
+                            in escrow, we can mediate fairly and release payments according to our terms of service.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technical Support -->
+                <div class="faq-category-section" data-category="support">
+                    <h2 class="faq-category-title"><i class="fas fa-headset"></i> Technical Support</h2>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>I forgot my password. How do I reset it?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            On the login page, click "Forgot Password?". Enter your registered email address, and we'll
+                            send you a password reset link. Follow the link to create a new password. If you don't
+                            receive the email, check your spam folder.
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>How do I contact customer support?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            You can reach us through the Contact page, email us at support@eventflex.com, or use the
+                            in-app messaging system. Premium users get priority support with response times under 2
+                            hours during business hours.
+                        </div>
+                    </div>
+
+                    <div class="faq-item" onclick="this.classList.toggle('active')">
+                        <div class="faq-question">
+                            <span>Is there a mobile app?</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="faq-answer">
+                            Our platform is fully mobile-responsive and works great in mobile browsers. Native iOS and
+                            Android apps are currently in development and will be launched soon. You can sign up for
+                            early access notifications in your account settings.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Still Have Questions?</h2>
+            <p>Our support team is here to help</p>
+            <div class="cta-buttons">
+                <a href="{% url 'contact_page' %}" class="btn-primary">Contact Support</a>
+                <a href="{% url 'signup_page' %}" class="btn-outline">Get Started</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2025 EventFlex. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/script.js' %}"></script>
+    <script>
+        // FAQ Search functionality
+        document.getElementById('faqSearch').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const faqItems = document.querySelectorAll('.faq-item');
+
+            faqItems.forEach(item => {
+                const question = item.querySelector('.faq-question span').textContent.toLowerCase();
+                const answer = item.querySelector('.faq-answer').textContent.toLowerCase();
+
+                if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

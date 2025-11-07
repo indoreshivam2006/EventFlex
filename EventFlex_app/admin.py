@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile, Job, Application, Transaction, Message, AutocompleteSuggestion
+from .models import UserProfile, Job, Application, Transaction, Message, AutocompleteSuggestion, BlacklistedToken
 
 # Register your models here.
 
@@ -41,3 +41,16 @@ class AutocompleteSuggestionAdmin(admin.ModelAdmin):
 	list_display = ('field_type', 'value', 'usage_count', 'created_at')
 	search_fields = ('value',)
 	list_filter = ('field_type',)
+
+
+@admin.register(BlacklistedToken)
+class BlacklistedTokenAdmin(admin.ModelAdmin):
+	list_display = ('user', 'blacklisted_at', 'expires_at', 'reason')
+	search_fields = ('user__username', 'user__email', 'token')
+	list_filter = ('reason', 'blacklisted_at')
+	readonly_fields = ('token', 'user', 'blacklisted_at', 'expires_at', 'reason')
+	
+	def has_add_permission(self, request):
+		# Prevent manual addition through admin
+		return False
+

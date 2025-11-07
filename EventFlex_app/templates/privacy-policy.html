@@ -1,0 +1,366 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - EventFlex</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .policy-hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 6rem 0 4rem;
+            text-align: center;
+        }
+
+        .policy-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+        }
+
+        .policy-hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .policy-section {
+            padding: 4rem 0;
+        }
+
+        .policy-content {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .policy-content h2 {
+            font-size: 2rem;
+            color: var(--gold);
+            margin: 2rem 0 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid #eee;
+        }
+
+        .policy-content h2:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .policy-content h3 {
+            font-size: 1.4rem;
+            color: #1a1a2e;
+            margin: 1.5rem 0 1rem;
+        }
+
+        .policy-content p {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .policy-content ul {
+            margin: 1rem 0 1.5rem 2rem;
+            color: #666;
+        }
+
+        .policy-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .policy-content strong {
+            color: #1a1a2e;
+        }
+
+        .last-updated {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .highlight-box {
+            background: #fff9e6;
+            border-left: 4px solid var(--gold);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .toc h3 {
+            color: #1a1a2e;
+            margin-bottom: 1rem;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+
+        .toc a {
+            color: var(--gold);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{% url 'home' %}"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>EventFlex</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'home' %}#features">Features</a></li>
+                <li><a href="{% url 'login_page' %}" class="btn-outline">Login</a></li>
+                <li><a href="{% url 'signup_page' %}" class="btn-primary">Sign Up</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="policy-hero">
+        <div class="container">
+            <h1>Privacy Policy</h1>
+            <p>Your privacy is important to us</p>
+        </div>
+    </section>
+
+    <!-- Policy Content -->
+    <section class="policy-section">
+        <div class="container">
+            <div class="policy-content">
+                <div class="last-updated">
+                    <strong>Last Updated:</strong> January 1, 2025
+                </div>
+
+                <div class="toc">
+                    <h3>Table of Contents</h3>
+                    <ul>
+                        <li><a href="#introduction">1. Introduction</a></li>
+                        <li><a href="#information-collection">2. Information We Collect</a></li>
+                        <li><a href="#information-use">3. How We Use Your Information</a></li>
+                        <li><a href="#information-sharing">4. Information Sharing</a></li>
+                        <li><a href="#data-security">5. Data Security</a></li>
+                        <li><a href="#your-rights">6. Your Rights</a></li>
+                        <li><a href="#cookies">7. Cookies and Tracking</a></li>
+                        <li><a href="#contact">8. Contact Us</a></li>
+                    </ul>
+                </div>
+
+                <h2 id="introduction">1. Introduction</h2>
+                <p>Welcome to EventFlex. This Privacy Policy explains how EventFlex Technologies Pvt. Ltd. ("we," "us,"
+                    or "our") collects, uses, discloses, and safeguards your information when you use our platform.</p>
+                <p>By accessing or using EventFlex, you agree to this Privacy Policy. If you do not agree with the terms
+                    of this Privacy Policy, please do not access the platform.</p>
+
+                <h2 id="information-collection">2. Information We Collect</h2>
+
+                <h3>2.1 Information You Provide</h3>
+                <p>We collect information that you voluntarily provide to us when you:</p>
+                <ul>
+                    <li><strong>Register an account:</strong> Name, email address, phone number, password, user type
+                        (organizer/professional)</li>
+                    <li><strong>Complete your profile:</strong> Professional experience, skills, certifications,
+                        portfolio, preferences</li>
+                    <li><strong>Post jobs or apply:</strong> Event details, requirements, availability, compensation
+                        expectations</li>
+                    <li><strong>Verification process:</strong> Government-issued ID, proof of address, professional
+                        credentials, bank account details</li>
+                    <li><strong>Make payments:</strong> Payment card information, billing address, bank account details
+                    </li>
+                    <li><strong>Communicate with us:</strong> Messages, feedback, support requests</li>
+                </ul>
+
+                <h3>2.2 Information Collected Automatically</h3>
+                <p>When you use EventFlex, we automatically collect certain information:</p>
+                <ul>
+                    <li><strong>Device information:</strong> IP address, browser type, operating system, device
+                        identifiers</li>
+                    <li><strong>Usage information:</strong> Pages viewed, time spent, features used, search queries</li>
+                    <li><strong>Location data:</strong> Approximate location based on IP address (with your consent)
+                    </li>
+                    <li><strong>Cookies and tracking:</strong> See Section 7 for details</li>
+                </ul>
+
+                <div class="highlight-box">
+                    <strong>Important:</strong> We use bank-level encryption (256-bit SSL) to protect all sensitive
+                    information including payment details and personal identification documents.
+                </div>
+
+                <h2 id="information-use">3. How We Use Your Information</h2>
+                <p>We use the collected information for various purposes:</p>
+                <ul>
+                    <li><strong>Provide services:</strong> Facilitate connections between organizers and professionals,
+                        process bookings and payments</li>
+                    <li><strong>Account management:</strong> Create and maintain your account, verify your identity</li>
+                    <li><strong>Communication:</strong> Send notifications, updates, promotional materials (with your
+                        consent)</li>
+                    <li><strong>Improvement:</strong> Analyze usage patterns, improve features, develop new services
+                    </li>
+                    <li><strong>Security:</strong> Detect and prevent fraud, abuse, and security incidents</li>
+                    <li><strong>Legal compliance:</strong> Comply with legal obligations, resolve disputes, enforce
+                        agreements</li>
+                    <li><strong>AI matching:</strong> Use machine learning to match organizers with suitable
+                        professionals</li>
+                </ul>
+
+                <h2 id="information-sharing">4. Information Sharing</h2>
+                <p>We may share your information in the following circumstances:</p>
+
+                <h3>4.1 With Other Users</h3>
+                <p>When you post a job or apply for one, certain profile information becomes visible to relevant parties
+                    to facilitate hiring decisions.</p>
+
+                <h3>4.2 Service Providers</h3>
+                <p>We share information with third-party service providers who perform services on our behalf:</p>
+                <ul>
+                    <li>Payment processors (for transaction processing)</li>
+                    <li>Cloud hosting providers (for data storage)</li>
+                    <li>Email service providers (for communications)</li>
+                    <li>Analytics providers (for platform improvement)</li>
+                    <li>Customer support tools (for assistance)</li>
+                </ul>
+
+                <h3>4.3 Legal Requirements</h3>
+                <p>We may disclose information when required by law or in response to legal processes, government
+                    requests, or to protect rights, property, or safety.</p>
+
+                <h3>4.4 Business Transfers</h3>
+                <p>In the event of a merger, acquisition, or sale of assets, your information may be transferred to the
+                    acquiring entity.</p>
+
+                <div class="highlight-box">
+                    <strong>We will never sell your personal information to third parties for marketing
+                        purposes.</strong>
+                </div>
+
+                <h2 id="data-security">5. Data Security</h2>
+                <p>We implement robust security measures to protect your information:</p>
+                <ul>
+                    <li><strong>Encryption:</strong> 256-bit SSL encryption for data transmission</li>
+                    <li><strong>Secure storage:</strong> Encrypted databases with access controls</li>
+                    <li><strong>Payment security:</strong> PCI DSS compliant payment processing</li>
+                    <li><strong>Access controls:</strong> Limited employee access on a need-to-know basis</li>
+                    <li><strong>Regular audits:</strong> Security assessments and penetration testing</li>
+                    <li><strong>Incident response:</strong> Procedures for detecting and responding to breaches</li>
+                </ul>
+                <p>However, no method of transmission over the Internet is 100% secure. While we strive to protect your
+                    information, we cannot guarantee absolute security.</p>
+
+                <h2 id="your-rights">6. Your Rights</h2>
+                <p>You have the following rights regarding your personal information:</p>
+
+                <h3>6.1 Access and Correction</h3>
+                <p>You can access and update your profile information at any time through your account settings.</p>
+
+                <h3>6.2 Data Portability</h3>
+                <p>You can request a copy of your data in a machine-readable format.</p>
+
+                <h3>6.3 Deletion</h3>
+                <p>You can request deletion of your account and associated data. Note that we may retain certain
+                    information as required by law or for legitimate business purposes.</p>
+
+                <h3>6.4 Opt-Out</h3>
+                <p>You can opt-out of marketing communications at any time by clicking the unsubscribe link in emails or
+                    adjusting your notification preferences.</p>
+
+                <h3>6.5 Do Not Track</h3>
+                <p>You can enable Do Not Track signals in your browser. We respect these signals.</p>
+
+                <p>To exercise these rights, contact us at <a
+                        href="mailto:privacy@eventflex.com">privacy@eventflex.com</a>.</p>
+
+                <h2 id="cookies">7. Cookies and Tracking Technologies</h2>
+                <p>We use cookies and similar tracking technologies to enhance your experience:</p>
+
+                <h3>Types of Cookies We Use:</h3>
+                <ul>
+                    <li><strong>Essential cookies:</strong> Required for platform functionality</li>
+                    <li><strong>Performance cookies:</strong> Help us understand how you use the platform</li>
+                    <li><strong>Functional cookies:</strong> Remember your preferences and settings</li>
+                    <li><strong>Advertising cookies:</strong> Deliver relevant advertisements (with consent)</li>
+                </ul>
+
+                <p>You can control cookies through your browser settings. However, disabling cookies may affect platform
+                    functionality.</p>
+
+                <h2>8. Children's Privacy</h2>
+                <p>EventFlex is not intended for individuals under 18 years of age. We do not knowingly collect
+                    information from children. If we discover that a child has provided personal information, we will
+                    delete it immediately.</p>
+
+                <h2>9. International Data Transfers</h2>
+                <p>Your information may be transferred to and processed in countries other than your own. We ensure
+                    appropriate safeguards are in place to protect your information in accordance with this Privacy
+                    Policy.</p>
+
+                <h2>10. Changes to This Privacy Policy</h2>
+                <p>We may update this Privacy Policy from time to time. We will notify you of any changes by posting the
+                    new Privacy Policy on this page and updating the "Last Updated" date. Continued use of EventFlex
+                    after changes constitutes acceptance of the updated policy.</p>
+
+                <h2 id="contact">11. Contact Us</h2>
+                <p>If you have questions or concerns about this Privacy Policy, please contact us:</p>
+                <ul>
+                    <li><strong>Email:</strong> <a href="mailto:privacy@eventflex.com">privacy@eventflex.com</a></li>
+                    <li><strong>Address:</strong> EventFlex Technologies Pvt. Ltd., 123 Business Park, MG Road,
+                        Bangalore, Karnataka 560001, India</li>
+                    <li><strong>Phone:</strong> +91 12345 67890</li>
+                </ul>
+
+                <div class="highlight-box">
+                    <strong>Data Protection Officer:</strong> For specific privacy concerns or to exercise your rights
+                    under GDPR or other data protection laws, contact our Data Protection Officer at <a
+                        href="mailto:dpo@eventflex.com">dpo@eventflex.com</a>.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2025 EventFlex. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+
+</html>

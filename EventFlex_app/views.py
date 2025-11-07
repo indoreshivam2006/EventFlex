@@ -5,12 +5,13 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.db import models as django_models
 from .models import UserProfile, Job, Application, Message, Transaction, AutocompleteSuggestion
+from .jwt_utils import generate_jwt_token, generate_refresh_token, get_token_from_request, blacklist_token
 import json
+import re
 from datetime import datetime
 from decimal import Decimal
 
 
-# Utility functions
 def safe_isoformat(value):
 	"""Safely convert date/time to ISO format string"""
 	if value is None:
@@ -22,14 +23,11 @@ def safe_isoformat(value):
 	return str(value)
 
 
-# Template views for frontend pages
 def index_view(request):
 	"""Landing page"""
-	# Get real statistics
 	total_professionals = UserProfile.objects.filter(user_type='staff').count()
 	total_events = Job.objects.count()
 	
-	# Calculate success rate (jobs with accepted applications / total jobs)
 	jobs_with_accepted = Application.objects.filter(status='accepted').values('job').distinct().count()
 	success_rate = int(((jobs_with_accepted / total_events) * 100)) if total_events > 0 else 98
 	
@@ -48,11 +46,9 @@ def login_page_view(request):
 
 def signup_page_view(request):
 	"""Signup page"""
-	# Get real statistics for signup page
 	total_professionals = UserProfile.objects.filter(user_type='staff').count()
 	total_events = Job.objects.count()
 	
-	# Calculate success rate (jobs with accepted applications / total jobs)
 	jobs_with_accepted = Application.objects.filter(status='accepted').values('job').distinct().count()
 	success_rate = int(((jobs_with_accepted / total_events) * 100)) if total_events > 0 else 98
 	
@@ -617,6 +613,8 @@ def _job_to_dict(job: Job):
 		'payment_type': job.payment_type,
 		'description': job.description,
 		'requirements': job.requirements,
+		'status': job.status,
+		'is_draft': job.is_draft,
 		'organizer': _profile_to_dict(job.organizer),
 	}
 
@@ -631,7 +629,11 @@ def _application_to_dict(application):
 			'role': application.job.role,
 			'location': application.job.location,
 			'date': safe_isoformat(application.job.date),
+			'start_time': safe_isoformat(application.job.start_time),
+			'end_time': safe_isoformat(application.job.end_time),
 			'pay_rate': str(application.job.pay_rate),
+			'payment_type': application.job.payment_type,
+			'organizer': _profile_to_dict(application.job.organizer),
 		},
 		'applicant': _profile_to_dict(application.applicant),
 		'status': application.status,
@@ -647,7 +649,152 @@ def _application_to_dict(application):
 		'previous_events': application.previous_events,
 		'why_interested': application.why_interested,
 		'expected_compensation': str(application.expected_compensation) if application.expected_compensation else None,
+		'ai_rating': float(application.ai_rating) if application.ai_rating else None,
+		'ai_rating_details': application.ai_rating_details,
+		'resume': application.resume.url if hasattr(application, 'resume') and application.resume else None,
 	}
+
+
+def calculate_ai_rating(relevant_skills, why_interested, cover_message, job):
+	"""
+	AI-powered rating system that evaluates application quality based on:
+	- Relevant Skills
+	- Why Interested in Position
+	- Cover Message
+	Returns a rating between 0-5 stars and detailed feedback
+	"""
+	rating = 0.0
+	feedback_parts = []
+	
+	# === SKILLS EVALUATION (0-2 points) ===
+	skills_score = 0.0
+	if relevant_skills and len(relevant_skills.strip()) > 0:
+		skills_lower = relevant_skills.lower()
+		job_skills_lower = (job.skills or '').lower()
+		job_role_lower = (job.role or '').lower()
+		
+		if len(relevant_skills) > 100:
+			skills_score += 0.5
+			feedback_parts.append("✓ Detailed skills description")
+		elif len(relevant_skills) > 50:
+			skills_score += 0.3
+			feedback_parts.append("○ Good skills overview")
+		else:
+			feedback_parts.append("✗ Skills section needs more detail")
+		
+		skill_keywords = ['photography', 'videography', 'coordination', 'management', 'technical', 
+						  'sound', 'lighting', 'catering', 'security', 'stage', 'equipment',
+						  'social media', 'marketing', 'design', 'decoration', 'planning']
+		matched_skills = [kw for kw in skill_keywords if kw in skills_lower]
+		
+		if len(matched_skills) >= 3:
+			skills_score += 0.7
+			feedback_parts.append(f"✓ Multiple relevant skills mentioned ({len(matched_skills)})")
+		elif len(matched_skills) >= 1:
+			skills_score += 0.4
+			feedback_parts.append(f"○ Some relevant skills mentioned ({len(matched_skills)})")
+		
+		if job_skills_lower and any(word in skills_lower for word in job_skills_lower.split() if len(word) > 3):
+			skills_score += 0.5
+			feedback_parts.append("✓ Skills align with job requirements")
+		
+		if job_role_lower and any(word in skills_lower for word in job_role_lower.split() if len(word) > 3):
+			skills_score += 0.3
+			feedback_parts.append("✓ Experience in similar role")
+	else:
+		feedback_parts.append("✗ No skills provided")
+	
+	rating += min(skills_score, 2.0)
+	
+	interest_score = 0.0
+	if why_interested and len(why_interested.strip()) > 0:
+		interest_lower = why_interested.lower()
+		
+		if len(why_interested) > 150:
+			interest_score += 0.5
+			feedback_parts.append("✓ Thoughtful explanation of interest")
+		elif len(why_interested) > 80:
+			interest_score += 0.3
+			feedback_parts.append("○ Decent explanation provided")
+		else:
+			feedback_parts.append("✗ Interest explanation too brief")
+		
+		passion_words = ['passion', 'excited', 'love', 'enthusiastic', 'motivated', 'dedicated',
+						 'inspire', 'dream', 'goal', 'aspire', 'committed']
+		if any(word in interest_lower for word in passion_words):
+			interest_score += 0.4
+			feedback_parts.append("✓ Shows genuine enthusiasm")
+		
+		specific_reasons = ['experience', 'learn', 'grow', 'develop', 'contribute', 'help',
+						   'team', 'opportunity', 'challenge', 'skills']
+		mentioned_reasons = [r for r in specific_reasons if r in interest_lower]
+		if len(mentioned_reasons) >= 2:
+			interest_score += 0.3
+			feedback_parts.append("✓ Clear motivation stated")
+		
+		if 'event' in interest_lower or 'organization' in interest_lower or job.title.lower() in interest_lower:
+			interest_score += 0.3
+			feedback_parts.append("✓ Shows research about the position")
+	else:
+		feedback_parts.append("✗ No explanation of interest")
+	
+	rating += min(interest_score, 1.5)
+	
+	cover_score = 0.0
+	if cover_message and len(cover_message.strip()) > 0:
+		cover_lower = cover_message.lower()
+		
+		if len(cover_message) > 200:
+			cover_score += 0.5
+			feedback_parts.append("✓ Comprehensive cover message")
+		elif len(cover_message) > 100:
+			cover_score += 0.3
+			feedback_parts.append("○ Adequate cover message")
+		else:
+			feedback_parts.append("✗ Cover message too short")
+		
+		sentences = len([s for s in re.split('[.!?]+', cover_message) if s.strip()])
+		if sentences >= 4:
+			cover_score += 0.3
+			feedback_parts.append("✓ Well-structured message")
+		
+		value_words = ['offer', 'bring', 'provide', 'deliver', 'ensure', 'guarantee',
+					   'achieve', 'accomplish', 'excel', 'succeed', 'contribute']
+		if any(word in cover_lower for word in value_words):
+			cover_score += 0.4
+			feedback_parts.append("✓ Highlights value proposition")
+		
+		if not any(word in cover_lower for word in ['hey', 'yo', 'sup', 'lol', 'haha']):
+			cover_score += 0.2
+			feedback_parts.append("✓ Professional tone")
+		else:
+			feedback_parts.append("✗ Unprofessional language detected")
+		
+		closing_words = ['forward', 'hearing', 'discuss', 'interview', 'meeting', 'thank', 'regards']
+		if any(word in cover_lower for word in closing_words):
+			cover_score += 0.1
+			feedback_parts.append("✓ Professional closing")
+	else:
+		feedback_parts.append("✗ No cover message provided")
+	
+	rating += min(cover_score, 1.5)
+	
+	rating = round(min(rating, 5.0), 1)
+	
+	if rating >= 4.5:
+		overall = "⭐ EXCELLENT APPLICATION - Highly qualified candidate"
+	elif rating >= 3.5:
+		overall = "✓ STRONG APPLICATION - Good candidate"
+	elif rating >= 2.5:
+		overall = "○ DECENT APPLICATION - Consider for interview"
+	elif rating >= 1.5:
+		overall = "△ WEAK APPLICATION - Missing key details"
+	else:
+		overall = "✗ POOR APPLICATION - Insufficient information"
+	
+	feedback = overall + "\n\n" + "\n".join(feedback_parts)
+	
+	return rating, feedback
 
 
 def jobs_list(request):
@@ -672,7 +819,6 @@ def apply_job(request, job_id):
 	except Exception:
 		payload = {}
 
-	# For prototype, allow application by username
 	username = payload.get('username')
 	cover = payload.get('cover_message', '')
 	if not username:
@@ -686,7 +832,6 @@ def apply_job(request, job_id):
 	except UserProfile.DoesNotExist:
 		return JsonResponse({'error': 'user profile not found'}, status=404)
 
-	# Check if user has already applied to this job
 	existing_application = Application.objects.filter(job=job, applicant=profile).first()
 	if existing_application:
 		return JsonResponse({
@@ -695,26 +840,40 @@ def apply_job(request, job_id):
 			'application_id': existing_application.id
 		}, status=400)
 
-	# Create application with detailed form fields
+	relevant_skills = payload.get('relevant_skills', '')
+	why_interested = payload.get('why_interested', '')
+	cover_message_text = payload.get('cover_message', cover)
+	
+	ai_rating, ai_feedback = calculate_ai_rating(
+		relevant_skills=relevant_skills,
+		why_interested=why_interested,
+		cover_message=cover_message_text,
+		job=job
+	)
+
 	app = Application.objects.create(
 		job=job,
 		applicant=profile,
-		cover_message=payload.get('cover_message', cover),
+		cover_message=cover_message_text,
 		full_name=payload.get('full_name', ''),
 		email=payload.get('email', ''),
 		phone=payload.get('phone', ''),
 		experience_years=payload.get('experience_years', '0'),
-		relevant_skills=payload.get('relevant_skills', ''),
+		relevant_skills=relevant_skills,
 		availability=payload.get('availability', ''),
 		portfolio_link=payload.get('portfolio_link', ''),
 		previous_events=payload.get('previous_events', ''),
-		why_interested=payload.get('why_interested', ''),
-		expected_compensation=payload.get('expected_compensation', '')
+		why_interested=why_interested,
+		expected_compensation=payload.get('expected_compensation', ''),
+		ai_rating=ai_rating,
+		ai_rating_details=ai_feedback
 	)
 	return JsonResponse({
 		'message': 'Application submitted successfully',
 		'application_id': app.id,
-		'status': app.status
+		'status': app.status,
+		'ai_rating': float(ai_rating),
+		'ai_feedback': ai_feedback
 	})
 
 
@@ -731,6 +890,30 @@ def profile_detail(request, pk):
 
 @csrf_exempt
 def register_view(request):
+	"""
+	Register new user with JWT token generation
+	
+	Supports both web (cookie-based) and API/mobile (header-based) authentication:
+	- Web: Returns JWT in HTTP-only cookie
+	- API/Mobile: Include 'X-Platform: mobile' header to get token in response body
+	
+	Request body:
+	{
+		"username": "newuser",
+		"email": "user@example.com",
+		"password": "password123",
+		"user_type": "staff" or "organizer",
+		"city": "Mumbai" (optional)
+	}
+	
+	Response:
+	{
+		"message": "registered",
+		"user": {...},
+		"profile": {...},
+		"token": "jwt_token_here"  // Only for mobile/API requests
+	}
+	"""
 	if request.method != 'POST':
 		return JsonResponse({'error': 'POST required'}, status=400)
 
@@ -750,14 +933,74 @@ def register_view(request):
 	if User.objects.filter(username=username).exists():
 		return JsonResponse({'error': 'username taken'}, status=400)
 
+	# Create user and profile
 	user = User.objects.create_user(username=username, email=email, password=password)
 	profile = UserProfile.objects.create(user=user, user_type=user_type, city=payload.get('city', ''))
-	return JsonResponse({'message': 'registered', 'user': {'username': user.username, 'id': profile.id}})
+	
+	# Generate JWT tokens
+	access_token = generate_jwt_token(user)
+	refresh_token = generate_refresh_token(user)
+	
+	# Check if request is from mobile/API client
+	is_mobile = request.headers.get('X-Platform') == 'mobile' or request.headers.get('X-API-Client') == 'true'
+	
+	response_data = {
+		'message': 'registered',
+		'user': {'username': user.username, 'id': profile.id},
+		'profile': _profile_to_dict(profile)
+	}
+	
+	# For mobile/API clients, include token in response body
+	if is_mobile:
+		response_data['access_token'] = access_token
+		response_data['refresh_token'] = refresh_token
+		response_data['token_type'] = 'Bearer'
+		return JsonResponse(response_data)
+	
+	# For web clients, set token as HTTP-only cookie
+	response = JsonResponse(response_data)
+	response.set_cookie(
+		'jwt_token',
+		access_token,
+		max_age=7 * 24 * 60 * 60,
+		httponly=True,
+		secure=False,
+		samesite='Lax'
+	)
+	response.set_cookie(
+		'jwt_refresh_token',
+		refresh_token,
+		max_age=30 * 24 * 60 * 60,
+		httponly=True,
+		secure=False,
+		samesite='Lax'
+	)
+	
+	return response
 
 
-@csrf_exempt
 @csrf_exempt
 def login_view(request):
+	"""
+	Login view with JWT token generation
+	
+	Supports both web (cookie-based) and API/mobile (header-based) authentication:
+	- Web: Returns JWT in HTTP-only cookie (no frontend changes needed)
+	- API/Mobile: Include 'X-Platform: mobile' header to get token in response body
+	
+	Request body:
+	{
+		"username": "user@example.com or username",
+		"password": "password123"
+	}
+	
+	Response:
+	{
+		"message": "logged in",
+		"profile": {...},
+		"token": "jwt_token_here"  // Only for mobile/API requests
+	}
+	"""
 	if request.method != 'POST':
 		return JsonResponse({'error': 'POST required'}, status=400)
 
@@ -769,7 +1012,9 @@ def login_view(request):
 	username = payload.get('username')
 	password = payload.get('password')
 	
-	# Try to authenticate with username first
+	if not username or not password:
+		return JsonResponse({'error': 'username and password required'}, status=400)
+	
 	user = authenticate(request, username=username, password=password)
 	
 	# If authentication fails and input looks like an email, try to find user by email
@@ -783,17 +1028,171 @@ def login_view(request):
 	if user is None:
 		return JsonResponse({'error': 'invalid credentials'}, status=401)
 
-	login(request, user)
+	# Generate JWT tokens
+	access_token = generate_jwt_token(user)
+	refresh_token = generate_refresh_token(user)
+	
+	# Get user profile
 	try:
 		profile = UserProfile.objects.get(user=user)
-		return JsonResponse({'message': 'logged in', 'profile': _profile_to_dict(profile)})
+		profile_data = _profile_to_dict(profile)
 	except UserProfile.DoesNotExist:
-		return JsonResponse({'message': 'logged in', 'username': user.username})
+		profile_data = {'username': user.username}
+	
+	# Check if request is from mobile/API client (needs token in body)
+	is_mobile = request.headers.get('X-Platform') == 'mobile' or request.headers.get('X-API-Client') == 'true'
+	
+	response_data = {
+		'message': 'logged in',
+		'profile': profile_data
+	}
+	
+	# For mobile/API clients, include token in response body
+	if is_mobile:
+		response_data['access_token'] = access_token
+		response_data['refresh_token'] = refresh_token
+		response_data['token_type'] = 'Bearer'
+		return JsonResponse(response_data)
+	
+	# For web clients, set token as HTTP-only cookie (no frontend changes needed!)
+	response = JsonResponse(response_data)
+	response.set_cookie(
+		'jwt_token',
+		access_token,
+		max_age=7 * 24 * 60 * 60,  # 7 days
+		httponly=True,  # JavaScript cannot access (XSS protection)
+		secure=False,  # Set to True in production with HTTPS
+		samesite='Lax'  # CSRF protection
+	)
+	
+	# Also set refresh token in separate cookie
+	response.set_cookie(
+		'jwt_refresh_token',
+		refresh_token,
+		max_age=30 * 24 * 60 * 60,  # 30 days
+		httponly=True,
+		secure=False,
+		samesite='Lax'
+	)
+	
+	return response
 
 
 def logout_view(request):
+	"""
+	Logout view - clears JWT tokens and blacklists them
+	
+	Clears both access and refresh tokens from cookies
+	Adds tokens to blacklist for security
+	Works for both web and API/mobile clients
+	"""
+	# Get tokens before logout
+	access_token = request.COOKIES.get('jwt_token') or request.headers.get('Authorization', '').replace('Bearer ', '')
+	refresh_token = request.COOKIES.get('jwt_refresh_token')
+	
+	# Blacklist tokens if they exist
+	if access_token and request.user.is_authenticated:
+		try:
+			blacklist_token(access_token, request.user, reason='logout')
+		except Exception as e:
+			print(f"Error blacklisting access token: {e}")
+	
+	if refresh_token and request.user.is_authenticated:
+		try:
+			blacklist_token(refresh_token, request.user, reason='logout')
+		except Exception as e:
+			print(f"Error blacklisting refresh token: {e}")
+	
+	# Clear Django session
 	logout(request)
-	return JsonResponse({'message': 'logged out'})
+	
+	response = JsonResponse({'message': 'logged out successfully'})
+	
+	# Delete JWT cookies
+	response.delete_cookie('jwt_token')
+	response.delete_cookie('jwt_refresh_token')
+	
+	# Also delete Django session cookie for good measure
+	response.delete_cookie('sessionid')
+	response.delete_cookie('csrftoken')
+	
+	return response
+
+
+@csrf_exempt
+def refresh_token_view(request):
+	"""
+	Refresh JWT access token using refresh token
+	
+	For web clients: Gets refresh token from cookie
+	For API/mobile clients: Gets refresh token from request body
+	
+	Request body (for mobile/API):
+	{
+		"refresh_token": "refresh_token_here"
+	}
+	
+	Response:
+	{
+		"access_token": "new_access_token",
+		"message": "token refreshed"
+	}
+	"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	
+	# Try to get refresh token from cookie (web) or body (mobile/API)
+	refresh_token = request.COOKIES.get('jwt_refresh_token')
+	
+	if not refresh_token:
+		try:
+			payload = json.loads(request.body.decode('utf-8'))
+			refresh_token = payload.get('refresh_token')
+		except Exception:
+			pass
+	
+	if not refresh_token:
+		return JsonResponse({'error': 'refresh token required'}, status=400)
+	
+	# Verify refresh token
+	from .jwt_utils import decode_jwt_token
+	token_payload = decode_jwt_token(refresh_token)
+	
+	if not token_payload:
+		return JsonResponse({'error': 'invalid or expired refresh token'}, status=401)
+	
+	if token_payload.get('type') != 'refresh':
+		return JsonResponse({'error': 'invalid token type'}, status=401)
+	
+	# Get user and generate new access token
+	try:
+		user = User.objects.get(id=token_payload['user_id'])
+		new_access_token = generate_jwt_token(user)
+		
+		# Check if mobile/API client
+		is_mobile = request.headers.get('X-Platform') == 'mobile' or request.headers.get('X-API-Client') == 'true'
+		
+		if is_mobile:
+			return JsonResponse({
+				'access_token': new_access_token,
+				'token_type': 'Bearer',
+				'message': 'token refreshed'
+			})
+		
+		# For web, update cookie
+		response = JsonResponse({'message': 'token refreshed'})
+		response.set_cookie(
+			'jwt_token',
+			new_access_token,
+			max_age=7 * 24 * 60 * 60,
+			httponly=True,
+			secure=False,
+			samesite='Lax'
+		)
+		return response
+		
+	except User.DoesNotExist:
+		return JsonResponse({'error': 'user not found'}, status=404)
 
 
 @csrf_exempt
@@ -825,7 +1224,6 @@ def create_job(request):
 			print(f"DEBUG: JSON parse error: {e}")
 			return JsonResponse({'error': f'invalid JSON: {str(e)}'}, status=400)
 		
-		# Create job
 		try:
 			job = Job.objects.create(
 				organizer=profile,
@@ -841,10 +1239,10 @@ def create_job(request):
 				pay_rate=payload.get('pay_rate', '0'),
 				payment_type=payload.get('payment_type', 'daily'),
 				description=payload.get('description', ''),
-				requirements=payload.get('requirements', '')
+				requirements=payload.get('requirements', ''),
+				is_draft=payload.get('is_draft', False)
 			)
 			
-			# Save autocomplete suggestions
 			if job.event_type:
 				suggestion, created = AutocompleteSuggestion.objects.get_or_create(
 					field_type='event_type',
@@ -910,7 +1308,19 @@ def my_jobs(request):
 	except UserProfile.DoesNotExist:
 		return JsonResponse({'error': 'profile not found'}, status=404)
 	
-	jobs = Job.objects.filter(organizer=profile).order_by('-created_at')
+	# Get status filter from query params (default to 'active')
+	status_filter = request.GET.get('status', 'active')
+	
+	if status_filter == 'all':
+		jobs = Job.objects.filter(organizer=profile).order_by('-created_at')
+	elif status_filter == 'completed':
+		jobs = Job.objects.filter(organizer=profile, status='completed', is_draft=False).order_by('-created_at')
+	elif status_filter == 'draft':
+		jobs = Job.objects.filter(organizer=profile, is_draft=True).order_by('-created_at')
+	else:  # active or pending
+		# Show only jobs that are NOT completed and NOT draft
+		jobs = Job.objects.filter(organizer=profile, is_draft=False).exclude(status='completed').order_by('-created_at')
+	
 	data = [_job_to_dict(j) for j in jobs]
 	return JsonResponse({'results': data})
 
@@ -926,10 +1336,8 @@ def my_applications(request):
 		return JsonResponse({'error': 'profile not found'}, status=404)
 	
 	if profile.user_type == 'staff':
-		# Get applications submitted by this staff member
 		applications = Application.objects.filter(applicant=profile).order_by('-created_at')
 	else:
-		# Get applications to jobs posted by this organizer
 		applications = Application.objects.filter(job__organizer=profile).order_by('-created_at')
 	
 	data = [_application_to_dict(app) for app in applications]
@@ -955,7 +1363,6 @@ def update_application_status(request, app_id):
 	
 	app = get_object_or_404(Application, id=app_id)
 	
-	# Verify organizer owns this job
 	if app.job.organizer != profile:
 		return JsonResponse({'error': 'unauthorized'}, status=403)
 	
@@ -986,7 +1393,6 @@ def get_application_detail(request, app_id):
 	
 	app = get_object_or_404(Application, id=app_id)
 	
-	# Verify user has permission to view this application
 	if profile.user_type == 'organizer':
 		if app.job.organizer != profile:
 			return JsonResponse({'error': 'unauthorized'}, status=403)
@@ -1015,9 +1421,26 @@ def accept_application(request, app_id):
 	
 	app = get_object_or_404(Application, id=app_id)
 	
-	# Verify organizer owns this job
 	if app.job.organizer != profile:
 		return JsonResponse({'error': 'unauthorized'}, status=403)
+	
+	# Check if organizer has sufficient balance to cover this staff payment
+	payment_required = app.job.pay_rate
+	
+	# Calculate already accepted staff for this job
+	accepted_apps = Application.objects.filter(job=app.job, status='accepted')
+	total_committed = sum(a.job.pay_rate for a in accepted_apps)
+	
+	new_total = total_committed + payment_required
+	
+	if profile.wallet_balance < new_total:
+		return JsonResponse({
+			'error': f'Insufficient balance. You need ₹{new_total} to hire this staff (₹{payment_required} for this hire + ₹{total_committed} already committed). Your balance: ₹{profile.wallet_balance}. Please add funds first.',
+			'required': str(new_total),
+			'available': str(profile.wallet_balance),
+			'this_hire': str(payment_required),
+			'already_committed': str(total_committed)
+		}, status=400)
 	
 	app.status = 'accepted'
 	app.save()
@@ -1026,39 +1449,9 @@ def accept_application(request, app_id):
 		'message': 'Application accepted successfully',
 		'application_id': app.id,
 		'status': 'accepted',
-		'applicant_name': app.full_name or app.applicant.user.username
-	})
-
-
-@csrf_exempt
-def reject_application(request, app_id):
-	"""Reject an application (organizer only)"""
-	if request.method != 'POST':
-		return JsonResponse({'error': 'POST required'}, status=400)
-	
-	if not request.user.is_authenticated:
-		return JsonResponse({'error': 'authentication required'}, status=401)
-	
-	try:
-		profile = UserProfile.objects.get(user=request.user)
-		if profile.user_type != 'organizer':
-			return JsonResponse({'error': 'only organizers can reject applications'}, status=403)
-	except UserProfile.DoesNotExist:
-		return JsonResponse({'error': 'profile not found'}, status=404)
-	
-	app = get_object_or_404(Application, id=app_id)
-	
-	# Verify organizer owns this job
-	if app.job.organizer != profile:
-		return JsonResponse({'error': 'unauthorized'}, status=403)
-	
-	app.status = 'rejected'
-	app.save()
-	
-	return JsonResponse({
-		'message': 'Application rejected',
-		'application_id': app.id,
-		'status': 'rejected'
+		'applicant_name': app.full_name or app.applicant.user.username,
+		'payment_committed': str(payment_required),
+		'remaining_balance': str(profile.wallet_balance - new_total)
 	})
 
 
@@ -1081,7 +1474,6 @@ def update_profile(request):
 	except Exception:
 		return JsonResponse({'error': 'invalid JSON'}, status=400)
 	
-	# Update allowed fields
 	if 'phone' in payload:
 		profile.phone = payload['phone']
 	if 'bio' in payload:
@@ -1094,6 +1486,79 @@ def update_profile(request):
 	return JsonResponse({'message': 'profile updated', 'profile': _profile_to_dict(profile)})
 
 
+@csrf_exempt
+def update_bank_details(request):
+	"""Update bank account details for withdrawals"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'authentication required'}, status=401)
+	
+	try:
+		profile = UserProfile.objects.get(user=request.user)
+	except UserProfile.DoesNotExist:
+		return JsonResponse({'error': 'profile not found'}, status=404)
+	
+	try:
+		data = json.loads(request.body.decode('utf-8'))
+	except Exception:
+		return JsonResponse({'error': 'invalid JSON'}, status=400)
+	
+	# Validate required fields
+	required_fields = ['bank_account_holder', 'bank_account_number', 'bank_ifsc_code']
+	missing_fields = [field for field in required_fields if not data.get(field)]
+	
+	if missing_fields:
+		return JsonResponse({
+			'error': f'Missing required fields: {", ".join(missing_fields)}'
+		}, status=400)
+	
+	# Update bank details
+	profile.bank_account_holder = data.get('bank_account_holder', '')
+	profile.bank_account_number = data.get('bank_account_number', '')
+	profile.bank_ifsc_code = data.get('bank_ifsc_code', '').upper()
+	profile.bank_name = data.get('bank_name', '')
+	profile.bank_branch = data.get('bank_branch', '')
+	
+	profile.save()
+	
+	return JsonResponse({
+		'success': True,
+		'message': 'Bank details updated successfully',
+		'bank_details': {
+			'bank_account_holder': profile.bank_account_holder,
+			'bank_account_number': '****' + profile.bank_account_number[-4:] if len(profile.bank_account_number) > 4 else '****',
+			'bank_ifsc_code': profile.bank_ifsc_code,
+			'bank_name': profile.bank_name,
+			'bank_branch': profile.bank_branch,
+			'has_bank_details': profile.has_bank_details()
+		}
+	})
+
+
+@csrf_exempt
+def get_bank_details(request):
+	"""Get current user's bank account details"""
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'authentication required'}, status=401)
+	
+	try:
+		profile = UserProfile.objects.get(user=request.user)
+	except UserProfile.DoesNotExist:
+		return JsonResponse({'error': 'profile not found'}, status=404)
+	
+	# Return masked account number for security
+	return JsonResponse({
+		'has_bank_details': profile.has_bank_details(),
+		'bank_account_holder': profile.bank_account_holder,
+		'bank_account_number': '****' + profile.bank_account_number[-4:] if profile.bank_account_number and len(profile.bank_account_number) > 4 else '',
+		'bank_ifsc_code': profile.bank_ifsc_code,
+		'bank_name': profile.bank_name,
+		'bank_branch': profile.bank_branch
+	})
+
+
 def my_messages(request):
 	"""Get messages for current user"""
 	if not request.user.is_authenticated:
@@ -1104,11 +1569,9 @@ def my_messages(request):
 	except UserProfile.DoesNotExist:
 		return JsonResponse({'error': 'profile not found'}, status=404)
 	
-	# Get conversation partner ID if provided
 	partner_id = request.GET.get('partner_id')
 	
 	if partner_id:
-		# Get messages for specific conversation
 		messages = Message.objects.filter(
 			sender=profile, recipient_id=partner_id
 		) | Message.objects.filter(
@@ -1116,7 +1579,6 @@ def my_messages(request):
 		)
 		messages = messages.order_by('created_at')
 	else:
-		# Get all messages
 		messages = Message.objects.filter(
 			sender=profile
 		) | Message.objects.filter(
@@ -1135,6 +1597,48 @@ def my_messages(request):
 		})
 	
 	return JsonResponse({'results': data})
+
+
+def get_conversations(request):
+	"""Get list of conversations (users the current user has messaged with)"""
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'authentication required'}, status=401)
+	
+	try:
+		profile = UserProfile.objects.get(user=request.user)
+	except UserProfile.DoesNotExist:
+		return JsonResponse({'error': 'profile not found'}, status=404)
+	
+	# Get all unique users the current user has messaged with
+	from django.db.models import Q, Max
+	
+	# Get all messages involving this user
+	messages = Message.objects.filter(
+		Q(sender=profile) | Q(recipient=profile)
+	).order_by('-created_at')
+	
+	# Build a dict of conversations with last message info
+	conversations = {}
+	for msg in messages:
+		# Determine the partner (the other person in the conversation)
+		partner = msg.recipient if msg.sender == profile else msg.sender
+		partner_id = partner.id
+		
+		if partner_id not in conversations:
+			conversations[partner_id] = {
+				'partner': _profile_to_dict(partner),
+				'last_message': msg.text,
+				'last_message_time': msg.created_at.isoformat()
+			}
+	
+	# Convert to list and sort by last message time
+	conv_list = sorted(
+		conversations.values(),
+		key=lambda x: x['last_message_time'],
+		reverse=True
+	)
+	
+	return JsonResponse({'conversations': conv_list})
 
 
 @csrf_exempt
@@ -1190,7 +1694,11 @@ def my_transactions(request):
 	except UserProfile.DoesNotExist:
 		return JsonResponse({'error': 'profile not found'}, status=404)
 	
-	transactions = Transaction.objects.filter(user=profile).select_related('application__job__organizer__user').order_by('-created_at')[:50]
+	transactions = Transaction.objects.filter(user=profile).select_related(
+		'application__job__organizer__user', 
+		'job', 
+		'related_user__user'
+	).order_by('-created_at')[:50]
 	
 	data = []
 	for txn in transactions:
@@ -1198,20 +1706,33 @@ def my_transactions(request):
 		organizer_name = ''
 		event_date = None
 		
-		if txn.application and txn.application.job:
+		# Get event details from job or application
+		if txn.job:
+			event_title = txn.job.title
+			organizer_name = txn.job.organizer.user.username if txn.job.organizer else 'Unknown'
+			event_date = safe_isoformat(txn.job.date)
+		elif txn.application and txn.application.job:
 			job = txn.application.job
 			event_title = job.title
 			organizer_name = job.organizer.user.username if job.organizer else 'Unknown'
 			event_date = safe_isoformat(job.date)
 		
+		# Get related user (for payment transactions)
+		related_user_name = ''
+		if txn.related_user:
+			related_user_name = txn.related_user.user.username
+		
 		data.append({
 			'id': txn.id,
 			'amount': str(txn.amount),
+			'transaction_type': txn.transaction_type,
 			'status': txn.status,
 			'note': txn.note,
 			'event_title': event_title,
 			'organizer_name': organizer_name,
+			'related_user': related_user_name,
 			'event_date': event_date,
+			'balance_after': str(txn.balance_after),
 			'created_at': txn.created_at.isoformat()
 		})
 	
@@ -1228,29 +1749,62 @@ def wallet_stats(request):
 	except UserProfile.DoesNotExist:
 		return JsonResponse({'error': 'profile not found'}, status=404)
 	
-	from django.db.models import Sum, Count
+	from django.db.models import Sum
 	from decimal import Decimal
 	
-	# Calculate available balance (completed transactions)
-	completed_txns = Transaction.objects.filter(user=profile, status='completed')
-	available_balance = completed_txns.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+	# Get wallet balance from UserProfile
+	available_balance = profile.wallet_balance
 	
-	# Calculate pending payments
-	pending_txns = Transaction.objects.filter(user=profile, status='pending')
-	pending_amount = pending_txns.aggregate(total=Sum('amount'))['total'] or Decimal('0')
-	pending_count = pending_txns.count()
+	# Calculate pending amount (accepted but not finished jobs)
+	if profile.user_type == 'organizer':
+		# Organizer: sum of pay for accepted staff (not yet finished)
+		from django.db.models import Q
+		accepted_apps = Application.objects.filter(
+			job__organizer=profile,
+			status='accepted',
+			job__status='active'
+		)
+		pending_amount = sum(app.job.pay_rate for app in accepted_apps)
+		pending_count = accepted_apps.count()
+	else:
+		# Staff: sum of pay from accepted jobs (not yet finished)
+		accepted_apps = Application.objects.filter(
+			applicant=profile,
+			status='accepted',
+			job__status='active'
+		)
+		pending_amount = sum(app.job.pay_rate for app in accepted_apps)
+		pending_count = accepted_apps.count()
 	
-	# Calculate total earned (all completed transactions)
-	total_earned = available_balance
-	total_events = completed_txns.values('application').distinct().count()
+	# Calculate total earned (only for staff - completed payments received)
+	earned_txns = Transaction.objects.filter(
+		user=profile,
+		transaction_type='payment',
+		status='completed'
+	)
+	total_earned = earned_txns.aggregate(total=Sum('amount'))['total'] or Decimal('0')
 	
-	# Get monthly earnings for chart (last 6 months)
+	# Calculate total events (completed jobs)
+	if profile.user_type == 'staff':
+		total_events = Application.objects.filter(
+			applicant=profile,
+			status='accepted',
+			job__status='completed'
+		).count()
+	else:
+		total_events = Job.objects.filter(
+			organizer=profile,
+			status='completed'
+		).count()
+	
+	# Monthly earnings for last 6 months
 	from datetime import datetime, timedelta
 	from django.db.models.functions import TruncMonth
 	
 	six_months_ago = datetime.now() - timedelta(days=180)
 	monthly_data = Transaction.objects.filter(
 		user=profile,
+		transaction_type='payment',
 		status='completed',
 		created_at__gte=six_months_ago
 	).annotate(
@@ -1290,33 +1844,47 @@ def withdraw_funds(request):
 	except UserProfile.DoesNotExist:
 		return JsonResponse({'error': 'profile not found'}, status=404)
 	
+	# Check if user has bank details
+	if not profile.has_bank_details():
+		return JsonResponse({
+			'error': 'Bank details required',
+			'requires_bank_details': True,
+			'message': 'Please add your bank account details before withdrawing funds.'
+		}, status=400)
+	
 	try:
+		from django.db import transaction as db_transaction
+		
 		data = json.loads(request.body)
 		amount = Decimal(str(data.get('amount', 0)))
 		
 		if amount <= 0:
 			return JsonResponse({'error': 'Invalid amount'}, status=400)
 		
-		# Check available balance
-		from django.db.models import Sum
-		completed_txns = Transaction.objects.filter(user=profile, status='completed')
-		available_balance = completed_txns.aggregate(total=Sum('amount'))['total'] or Decimal('0')
-		
-		if amount > available_balance:
+		if amount > profile.wallet_balance:
 			return JsonResponse({'error': 'Insufficient balance'}, status=400)
 		
-		# Create withdrawal transaction (negative amount)
-		Transaction.objects.create(
-			user=profile,
-			amount=-amount,
-			status='completed',
-			note=f'Withdrawal to bank account'
-		)
+		# Atomic transaction to ensure consistency
+		with db_transaction.atomic():
+			# Deduct from wallet
+			profile.wallet_balance -= amount
+			new_balance = profile.wallet_balance
+			profile.save()
+			
+			# Record withdrawal transaction
+			Transaction.objects.create(
+				user=profile,
+				transaction_type='withdrawal',
+				amount=amount,
+				status='completed',
+				balance_after=new_balance,
+				note=f'Withdrawal to {profile.bank_name} A/C ending with {profile.bank_account_number[-4:]}'
+			)
 		
 		return JsonResponse({
 			'success': True,
 			'message': f'₹{amount} withdrawn successfully',
-			'new_balance': str(available_balance - amount)
+			'new_balance': str(new_balance)
 		})
 	except Exception as e:
 		return JsonResponse({'error': str(e)}, status=400)
@@ -1334,11 +1902,7 @@ def upload_profile_photo(request):
 	try:
 		profile = UserProfile.objects.get(user=request.user)
 		
-		# In a real implementation, you would save the file
-		# For now, we'll simulate it
 		if 'photo' in request.FILES:
-			# photo = request.FILES['photo']
-			# Save photo logic here
 			return JsonResponse({
 				'success': True,
 				'message': 'Profile photo updated successfully',
@@ -1362,7 +1926,6 @@ def upload_video_intro(request):
 	try:
 		profile = UserProfile.objects.get(user=request.user)
 		
-		# Mark video as verified after upload
 		profile.video_verified = True
 		profile.save()
 		
@@ -1423,7 +1986,6 @@ def track_attendance(request, job_id):
 		profile = UserProfile.objects.get(user=request.user)
 		job = Job.objects.get(id=job_id, organizer=profile)
 		
-		# Generate attendance tracking data
 		attendance_data = {
 			'job_id': job.id,
 			'job_title': job.title,
@@ -1451,7 +2013,6 @@ def download_report(request, job_id):
 		profile = UserProfile.objects.get(user=request.user)
 		job = Job.objects.get(id=job_id, organizer=profile)
 		
-		# Get job applications
 		applications = Application.objects.filter(job=job)
 		
 		report_data = {
@@ -1486,24 +2047,39 @@ def add_funds(request):
 	
 	try:
 		profile = UserProfile.objects.get(user=request.user)
-		data = json.loads(request.body)
 		
+		if profile.user_type != 'organizer':
+			return JsonResponse({'error': 'Only organizers can add funds'}, status=403)
+		
+		data = json.loads(request.body)
 		amount = Decimal(str(data.get('amount', 0)))
 		
 		if amount <= 0:
 			return JsonResponse({'error': 'Invalid amount'}, status=400)
 		
-		# Create transaction for funds added
-		Transaction.objects.create(
-			user=profile,
-			amount=amount,
-			status='completed',
-			note='Funds added to wallet'
-		)
+		from django.db import transaction as db_transaction
+		
+		# Atomic transaction to ensure consistency
+		with db_transaction.atomic():
+			# Add to wallet
+			profile.wallet_balance += amount
+			new_balance = profile.wallet_balance
+			profile.save()
+			
+			# Record deposit transaction
+			Transaction.objects.create(
+				user=profile,
+				transaction_type='deposit',
+				amount=amount,
+				status='completed',
+				balance_after=new_balance,
+				note='Funds added to wallet'
+			)
 		
 		return JsonResponse({
 			'success': True,
-			'message': f'₹{amount} added successfully'
+			'message': f'₹{amount} added successfully',
+			'new_balance': str(new_balance)
 		})
 	except Exception as e:
 		return JsonResponse({'error': str(e)}, status=400)
@@ -1525,7 +2101,6 @@ def release_payment(request, application_id):
 		if application.status != 'accepted':
 			return JsonResponse({'error': 'Can only release payment for accepted applications'}, status=400)
 		
-		# Check if payment already exists
 		existing_payment = Transaction.objects.filter(
 			application=application,
 			user=application.applicant,
@@ -1535,7 +2110,6 @@ def release_payment(request, application_id):
 		if existing_payment:
 			return JsonResponse({'error': 'Payment already released'}, status=400)
 		
-		# Create transaction for staff member
 		Transaction.objects.create(
 			user=application.applicant,
 			application=application,
@@ -1567,7 +2141,9 @@ def save_profile(request):
 		profile = UserProfile.objects.get(user=request.user)
 		data = json.loads(request.body)
 		
-		# Update user fields
+		# Update User model fields
+		if 'username' in data and data['username']:
+			request.user.username = data['username']
 		if 'first_name' in data:
 			request.user.first_name = data['first_name']
 		if 'last_name' in data:
@@ -1576,7 +2152,7 @@ def save_profile(request):
 			request.user.email = data['email']
 		request.user.save()
 		
-		# Update profile fields
+		# Update UserProfile fields
 		if 'phone' in data:
 			profile.phone = data['phone']
 		if 'city' in data:
@@ -1585,9 +2161,21 @@ def save_profile(request):
 			profile.bio = data['bio']
 		profile.save()
 		
+		# Return updated profile data
 		return JsonResponse({
 			'success': True,
-			'message': 'Profile updated successfully'
+			'message': 'Profile updated successfully',
+			'profile': {
+				'username': request.user.username,
+				'email': request.user.email,
+				'first_name': request.user.first_name,
+				'last_name': request.user.last_name,
+				'phone': profile.phone,
+				'city': profile.city,
+				'bio': profile.bio,
+				'user_type': profile.user_type,
+				'wallet_balance': str(profile.wallet_balance),
+			}
 		})
 	except Exception as e:
 		return JsonResponse({'error': str(e)}, status=400)
@@ -1606,14 +2194,11 @@ def get_autocomplete_suggestions(request):
 		return JsonResponse({'error': 'field_type required'}, status=400)
 	
 	try:
-		# Get suggestions filtered by field_type
 		suggestions = AutocompleteSuggestion.objects.filter(field_type=field_type)
 		
-		# If query provided, filter by value containing query
 		if query:
 			suggestions = suggestions.filter(value__icontains=query)
 		
-		# Limit to top 10 suggestions
 		suggestions = suggestions[:10]
 		
 		data = [{'value': s.value, 'usage_count': s.usage_count} for s in suggestions]
@@ -1637,19 +2222,16 @@ def save_autocomplete_suggestion(request):
 		if not field_type or not value:
 			return JsonResponse({'error': 'field_type and value required'}, status=400)
 		
-		# Get user profile if authenticated
 		user_profile = None
 		if request.user.is_authenticated:
 			user_profile = UserProfile.objects.get(user=request.user)
 		
-		# Get or create suggestion
 		suggestion, created = AutocompleteSuggestion.objects.get_or_create(
 			field_type=field_type,
 			value=value,
 			defaults={'created_by': user_profile}
 		)
 		
-		# If already exists, increment usage count
 		if not created:
 			suggestion.usage_count += 1
 			suggestion.save()
@@ -1661,3 +2243,446 @@ def save_autocomplete_suggestion(request):
 		})
 	except Exception as e:
 		return JsonResponse({'error': str(e)}, status=400)
+
+
+# Get applications for a specific job (with optional status filter)
+@csrf_exempt
+def job_applications(request, job_id):
+	"""Get all applications for a specific job, optionally filtered by status"""
+	if request.method != 'GET':
+		return JsonResponse({'error': 'GET required'}, status=400)
+	
+	try:
+		job = get_object_or_404(Job, id=job_id)
+		
+		# Check authentication and authorization
+		if not request.user.is_authenticated:
+			return JsonResponse({'error': 'Authentication required'}, status=401)
+		
+		try:
+			profile = UserProfile.objects.get(user=request.user)
+			if profile.user_type != 'organizer':
+				return JsonResponse({'error': 'Only organizers can view applications'}, status=403)
+			
+			if job.organizer != profile:
+				return JsonResponse({'error': 'You do not own this job'}, status=403)
+		except UserProfile.DoesNotExist:
+			return JsonResponse({'error': 'Profile not found'}, status=404)
+		
+		status_filter = request.GET.get('status', None)
+		
+		applications = Application.objects.filter(job=job).select_related('applicant__user')
+		
+		if status_filter:
+			applications = applications.filter(status=status_filter)
+		
+		result = []
+		for app in applications:
+			app_dict = {
+				'id': app.id,
+				'status': app.status,
+				'created_at': app.created_at.isoformat() if app.created_at else None,
+				'cover_message': app.cover_message,
+				'full_name': app.full_name or app.applicant.user.username,
+				'email': app.email or app.applicant.user.email,
+				'phone': app.phone or app.applicant.phone or '',
+				'applicant': {
+					'id': app.applicant.id,
+					'username': app.applicant.user.username,
+					'email': app.applicant.user.email,
+					'phone': app.applicant.phone or '',
+				},
+				'experience_years': app.experience_years,
+				'relevant_skills': app.relevant_skills,
+				'availability': app.availability,
+			}
+			result.append(app_dict)
+		
+		return JsonResponse(result, safe=False)
+		
+	except Exception as e:
+		import traceback
+		print(f"Error in job_applications: {str(e)}")
+		print(traceback.format_exc())
+		return JsonResponse({'error': str(e)}, status=400)
+
+
+@csrf_exempt
+def complete_job(request, job_id):
+	"""Mark a job as completed"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	
+	try:
+		job = get_object_or_404(Job, id=job_id)
+		
+		if not request.user.is_authenticated:
+			return JsonResponse({'error': 'Authentication required'}, status=401)
+		
+		try:
+			profile = UserProfile.objects.get(user=request.user)
+			if profile.user_type != 'organizer':
+				return JsonResponse({'error': 'Only organizers can complete jobs'}, status=403)
+			
+			if job.organizer != profile:
+				return JsonResponse({'error': 'You do not own this job'}, status=403)
+		except UserProfile.DoesNotExist:
+			return JsonResponse({'error': 'Profile not found'}, status=404)
+		
+		job.status = 'completed'
+		job.save()
+		
+		return JsonResponse({
+			'success': True,
+			'message': 'Job marked as completed',
+			'job_id': job.id,
+			'status': job.status
+		})
+		
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=400)
+
+
+@csrf_exempt
+def delete_job(request, job_id):
+	"""Delete a job (only by organizer who owns it)"""
+	if request.method != 'DELETE':
+		return JsonResponse({'error': 'DELETE required'}, status=400)
+	
+	try:
+		job = get_object_or_404(Job, id=job_id)
+		
+		if not request.user.is_authenticated:
+			return JsonResponse({'error': 'Authentication required'}, status=401)
+		
+		try:
+			profile = UserProfile.objects.get(user=request.user)
+			if profile.user_type != 'organizer':
+				return JsonResponse({'error': 'Only organizers can delete jobs'}, status=403)
+			
+			if job.organizer != profile:
+				return JsonResponse({'error': 'You do not own this job'}, status=403)
+		except UserProfile.DoesNotExist:
+			return JsonResponse({'error': 'Profile not found'}, status=404)
+		
+		job_title = job.title
+		job.delete()
+		
+		return JsonResponse({
+			'success': True,
+			'message': f'Job "{job_title}" has been deleted successfully'
+		})
+		
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=400)
+
+
+def get_job_details(request, job_id):
+	"""Get detailed job information including hired staff"""
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'Authentication required'}, status=401)
+	
+	try:
+		job = get_object_or_404(Job, id=job_id)
+		
+		try:
+			profile = UserProfile.objects.get(user=request.user)
+			
+			# Allow organizers to view their own jobs, and staff to view jobs they're hired for
+			if profile.user_type == 'organizer':
+				if job.organizer != profile:
+					return JsonResponse({'error': 'You do not own this job'}, status=403)
+			elif profile.user_type == 'staff':
+				# Check if staff is hired for this job
+				is_hired = Application.objects.filter(
+					job=job,
+					applicant=profile,
+					status='accepted'
+				).exists()
+				if not is_hired:
+					return JsonResponse({'error': 'You are not hired for this job'}, status=403)
+			else:
+				return JsonResponse({'error': 'Invalid user type'}, status=403)
+				
+		except UserProfile.DoesNotExist:
+			return JsonResponse({'error': 'Profile not found'}, status=404)
+		
+		# Get hired staff (accepted applications) - only show for organizers
+		staff_list = []
+		if profile.user_type == 'organizer':
+			hired_staff = Application.objects.filter(
+				job=job,
+				status='accepted'
+			).select_related('applicant__user')
+			
+			staff_list = [{
+				'id': app.id,
+				'name': app.full_name or app.applicant.user.username,
+				'email': app.email or app.applicant.user.email,
+				'phone': app.phone or app.applicant.phone,
+				'user_id': app.applicant.user.id
+			} for app in hired_staff]
+		
+		job_data = {
+			'id': job.id,
+			'title': job.title,
+			'description': job.description,
+			'event_type': job.event_type,
+			'role': job.role,
+			'date': job.date.isoformat() if job.date else None,
+			'start_time': job.start_time.strftime('%H:%M') if job.start_time else 'TBD',
+			'end_time': job.end_time.strftime('%H:%M') if job.end_time else 'TBD',
+			'location': job.location,
+			'pay_rate': str(job.pay_rate),
+			'payment_type': job.payment_type,
+			'number_of_staff': job.number_of_staff,
+			'requirements': job.requirements,
+			'skills': job.skills,
+			'hired_staff': staff_list
+		}
+		
+		return JsonResponse(job_data)
+		
+	except Exception as e:
+		import traceback
+		print(f"Error in get_job_details: {str(e)}")
+		print(traceback.format_exc())
+		return JsonResponse({'error': str(e)}, status=400)
+
+
+@csrf_exempt
+def finish_job(request, job_id):
+	"""Mark a job/event as finished and release payments to staff"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'Authentication required'}, status=401)
+	
+	try:
+		from django.db import transaction as db_transaction
+		
+		job = get_object_or_404(Job, id=job_id)
+		
+		try:
+			profile = UserProfile.objects.get(user=request.user)
+			if profile.user_type != 'organizer':
+				return JsonResponse({'error': 'Only organizers can finish jobs'}, status=403)
+			
+			if job.organizer != profile:
+				return JsonResponse({'error': 'You do not own this job'}, status=403)
+		except UserProfile.DoesNotExist:
+			return JsonResponse({'error': 'Profile not found'}, status=404)
+		
+		# Get all accepted applications for this job
+		accepted_apps = Application.objects.filter(job=job, status='accepted')
+		
+		if not accepted_apps.exists():
+			# No staff to pay, just mark as completed
+			job.status = 'completed'
+			job.save()
+			return JsonResponse({
+				'success': True,
+				'message': 'Event marked as finished successfully',
+				'job_id': job.id,
+				'job_title': job.title,
+				'payments_released': 0
+			})
+		
+		# Calculate total amount needed
+		total_payment = sum(app.job.pay_rate for app in accepted_apps)
+		
+		# Check if organizer has enough balance
+		if profile.wallet_balance < total_payment:
+			return JsonResponse({
+				'error': f'Insufficient balance. Need ₹{total_payment}, but only have ₹{profile.wallet_balance}',
+				'required': str(total_payment),
+				'available': str(profile.wallet_balance)
+			}, status=400)
+		
+		# Atomic transaction to release all payments
+		with db_transaction.atomic():
+			payments_released = 0
+			
+			# Deduct from organizer's wallet
+			profile.wallet_balance -= total_payment
+			organizer_balance = profile.wallet_balance
+			profile.save()
+			
+			# Record organizer's payment transaction
+			Transaction.objects.create(
+				user=profile,
+				transaction_type='escrow_release',
+				amount=total_payment,
+				status='completed',
+				job=job,
+				balance_after=organizer_balance,
+				note=f'Payment released for event: {job.title}'
+			)
+			
+			# Pay each accepted staff member
+			for app in accepted_apps:
+				staff_profile = app.applicant
+				payment_amount = app.job.pay_rate
+				
+				# Add to staff wallet
+				staff_profile.wallet_balance += payment_amount
+				staff_balance = staff_profile.wallet_balance
+				staff_profile.save()
+				
+				# Record staff payment transaction
+				Transaction.objects.create(
+					user=staff_profile,
+					transaction_type='payment',
+					amount=payment_amount,
+					status='completed',
+					application=app,
+					job=job,
+					related_user=profile,
+					balance_after=staff_balance,
+					note=f'Payment received for: {job.title}'
+				)
+				
+				payments_released += 1
+			
+			# Mark job as completed
+			job.status = 'completed'
+			job.save()
+		
+		return JsonResponse({
+			'success': True,
+			'message': f'Event finished and ₹{total_payment} released to {payments_released} staff members',
+			'job_id': job.id,
+			'job_title': job.title,
+			'payments_released': payments_released,
+			'total_amount': str(total_payment)
+		})
+		
+	except Exception as e:
+		print(f"Error finishing job: {e}")
+		import traceback
+		traceback.print_exc()
+		return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def reject_application(request, app_id):
+	"""Reject/Fire an application"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	
+	try:
+		application = get_object_or_404(Application, id=app_id)
+		
+		if not request.user.is_authenticated:
+			return JsonResponse({'error': 'Authentication required'}, status=401)
+		
+		try:
+			profile = UserProfile.objects.get(user=request.user)
+			if profile.user_type != 'organizer':
+				return JsonResponse({'error': 'Only organizers can reject applications'}, status=403)
+			
+			if application.job.organizer != profile:
+				return JsonResponse({'error': 'You do not own this job'}, status=403)
+		except UserProfile.DoesNotExist:
+			return JsonResponse({'error': 'Profile not found'}, status=404)
+		
+		application.status = 'rejected'
+		application.save()
+		
+		return JsonResponse({
+			'success': True,
+			'message': 'Application rejected successfully',
+			'application_id': application.id,
+			'status': 'rejected'
+		})
+		
+		
+	except Exception as e:
+		print(f"Error rejecting application: {e}")  # Debug logging
+		return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def withdraw_application(request, app_id):
+	"""Allow staff to withdraw from an accepted event"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	
+	try:
+		application = get_object_or_404(Application, id=app_id)
+		
+		if not request.user.is_authenticated:
+			return JsonResponse({'error': 'Authentication required'}, status=401)
+		
+		try:
+			profile = UserProfile.objects.get(user=request.user)
+			if profile.user_type != 'staff':
+				return JsonResponse({'error': 'Only staff can withdraw from events'}, status=403)
+			
+			if application.applicant != profile:
+				return JsonResponse({'error': 'This is not your application'}, status=403)
+			
+			if application.status != 'accepted':
+				return JsonResponse({'error': 'Can only withdraw from accepted applications'}, status=400)
+		except UserProfile.DoesNotExist:
+			return JsonResponse({'error': 'Profile not found'}, status=404)
+		
+		# Change status to withdrawn/cancelled
+		application.status = 'withdrawn'
+		application.save()
+		
+		return JsonResponse({
+			'success': True,
+			'message': 'Successfully withdrawn from event',
+			'application_id': application.id,
+			'status': 'withdrawn'
+		})
+		
+	except Exception as e:
+		print(f"Error withdrawing application: {e}")  # Debug logging
+		return JsonResponse({'error': str(e)}, status=500)
+
+
+# Footer Pages Views
+def pricing_page(request):
+	"""Pricing page"""
+	return render(request, 'pricing.html')
+
+
+def success_stories_page(request):
+	"""Success Stories page"""
+	return render(request, 'success-stories.html')
+
+
+def verification_page(request):
+	"""Verification page"""
+	return render(request, 'verification.html')
+
+
+def faqs_page(request):
+	"""FAQs page"""
+	return render(request, 'faqs.html')
+
+
+def about_us_page(request):
+	"""About Us page"""
+	return render(request, 'about-us.html')
+
+
+def contact_page(request):
+	"""Contact page"""
+	return render(request, 'contact.html')
+
+
+def privacy_policy_page(request):
+	"""Privacy Policy page"""
+	return render(request, 'privacy-policy.html')
+
+
+def terms_page(request):
+	"""Terms of Service page"""
+	return render(request, 'terms-of-service.html')
+
+
+

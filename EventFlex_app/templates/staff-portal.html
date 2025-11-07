@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body class="dashboard-page" data-requires-auth="true" data-user-type="staff">
     <!-- Dashboard Navigation -->
     <nav class="dashboard-nav">
@@ -24,8 +26,9 @@
             <span class="nav-link-text">Login</span>
             <a href="{% url 'signup_page' %}" class="btn-primary-small">Sign Up</a>
             <div class="user-profile">
-                <img src="https://ui-avatars.com/api/?name=Test&background=10b981&color=fff" alt="Profile" id="user-avatar">
-                <a href="#profile"><span id="user-name-display">Test</span></a> 
+                <img src="https://ui-avatars.com/api/?name=Test&background=10b981&color=fff" alt="Profile"
+                    id="user-avatar">
+                <a href="#profile"><span id="user-name-display">Test</span></a>
             </div>
         </div>
     </nav>
@@ -56,7 +59,7 @@
                     <a href="#profile"><i class="fas fa-user"></i> My Profile</a>
                 </li>
                 <li>
-                    <a href="{% url 'index' %}" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                    <a href="{% url 'home' %}" id="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</a>
                 </li>
             </ul>
         </aside>
@@ -72,7 +75,8 @@
                 <div class="alert alert-info" id="verification-alert" style="display: none;">
                     <i class="fas fa-info-circle"></i>
                     <div>
-                        <strong>Complete your profile!</strong> Add KYC and video verification to get more job opportunities.
+                        <strong>Complete your profile!</strong> Add KYC and video verification to get more job
+                        opportunities.
                     </div>
                 </div>
 
@@ -169,12 +173,14 @@
                 <div class="search-filters">
                     <div class="search-bar">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="job-search-input" placeholder="Search jobs by title, location, or organizer...">
+                        <input type="text" id="job-search-input"
+                            placeholder="Search jobs by title, location, or organizer...">
                     </div>
                     <div class="filter-group">
                         <div class="filter-input-wrapper">
                             <i class="fas fa-map-marker-alt"></i>
-                            <input type="text" id="filter-location" placeholder="Enter location (e.g., Mumbai, Delhi, Bangalore)">
+                            <input type="text" id="filter-location"
+                                placeholder="Enter location (e.g., Mumbai, Delhi, Bangalore)">
                         </div>
                         <select id="filter-event-type">
                             <option value="">All Event Types</option>
@@ -204,9 +210,12 @@
             <section id="my-applications" class="dashboard-section">
                 <h1>My Applications</h1>
                 <div class="tabs-secondary">
-                    <button class="tab-btn-secondary active" data-tab="pending">Pending <span id="pending-count">(0)</span></button>
-                    <button class="tab-btn-secondary" data-tab="accepted">Accepted <span id="accepted-count">(0)</span></button>
-                    <button class="tab-btn-secondary" data-tab="rejected">Rejected <span id="rejected-count">(0)</span></button>
+                    <button class="tab-btn-secondary active" data-tab="pending">Pending <span
+                            id="pending-count">(0)</span></button>
+                    <button class="tab-btn-secondary" data-tab="accepted">Accepted <span
+                            id="accepted-count">(0)</span></button>
+                    <button class="tab-btn-secondary" data-tab="rejected">Rejected <span
+                            id="rejected-count">(0)</span></button>
                 </div>
 
                 <div class="applications-list" data-tab-content="pending" id="pending-applications">
@@ -226,9 +235,12 @@
             <section id="my-bookings" class="dashboard-section">
                 <h1>My Bookings</h1>
                 <div class="tabs-secondary">
-                    <button class="tab-btn-secondary active" data-tab="upcoming">Upcoming <span id="upcoming-bookings-count">(0)</span></button>
-                    <button class="tab-btn-secondary" data-tab="completed">Completed <span id="completed-bookings-count">(0)</span></button>
-                    <button class="tab-btn-secondary" data-tab="cancelled">Cancelled <span id="cancelled-bookings-count">(0)</span></button>
+                    <button class="tab-btn-secondary active" data-tab="upcoming">Upcoming <span
+                            id="upcoming-bookings-count">(0)</span></button>
+                    <button class="tab-btn-secondary" data-tab="completed">Completed <span
+                            id="completed-bookings-count">(0)</span></button>
+                    <button class="tab-btn-secondary" data-tab="cancelled">Cancelled <span
+                            id="cancelled-bookings-count">(0)</span></button>
                 </div>
 
                 <div class="bookings-list" data-tab-content="upcoming" id="upcoming-bookings">
@@ -247,7 +259,7 @@
             <!-- Wallet Section -->
             <section id="wallet" class="dashboard-section">
                 <h1>My Wallet</h1>
-                
+
                 <div class="wallet-overview">
                     <div class="wallet-card primary">
                         <h3>Available Balance</h3>
@@ -303,7 +315,8 @@
                         </div>
                         <div class="conversation-list">
                             <div class="conversation-item active">
-                                <img src="https://ui-avatars.com/api/?name=TechEvents+India&background=6366f1&color=fff" alt="TechEvents India">
+                                <img src="https://ui-avatars.com/api/?name=TechEvents+India&background=6366f1&color=fff"
+                                    alt="TechEvents India">
                                 <div class="conversation-info">
                                     <h4>TechEvents India</h4>
                                     <p>Looking forward to the event...</p>
@@ -311,7 +324,8 @@
                                 <span class="time">5m</span>
                             </div>
                             <div class="conversation-item">
-                                <img src="https://ui-avatars.com/api/?name=Corporate+Solutions&background=10b981&color=fff" alt="Corporate Solutions">
+                                <img src="https://ui-avatars.com/api/?name=Corporate+Solutions&background=10b981&color=fff"
+                                    alt="Corporate Solutions">
                                 <div class="conversation-info">
                                     <h4>Corporate Solutions</h4>
                                     <p>Please arrive 30 minutes early</p>
@@ -322,7 +336,8 @@
                     </div>
                     <div class="chat-area">
                         <div class="chat-header">
-                            <img src="https://ui-avatars.com/api/?name=TechEvents+India&background=6366f1&color=fff" alt="TechEvents India">
+                            <img src="https://ui-avatars.com/api/?name=TechEvents+India&background=6366f1&color=fff"
+                                alt="TechEvents India">
                             <div>
                                 <h4>TechEvents India</h4>
                                 <p>Event Organizer</p>
@@ -353,7 +368,7 @@
             <!-- Profile Section -->
             <section id="profile" class="dashboard-section">
                 <h1>My Profile</h1>
-                
+
                 <div class="profile-completion">
                     <div class="completion-header">
                         <h3>Profile Completion</h3>
@@ -367,7 +382,8 @@
 
                 <div class="profile-card">
                     <div class="profile-header">
-                        <img src="https://ui-avatars.com/api/?name=Priya+Kumar&background=6366f1&color=fff" alt="Profile" class="profile-image-large">
+                        <img src="https://ui-avatars.com/api/?name=Priya+Kumar&background=6366f1&color=fff"
+                            alt="Profile" class="profile-image-large">
                         <div class="profile-header-info">
                             <h2>Priya Kumar</h2>
                             <p class="profile-role">Event Coordinator</p>
@@ -414,7 +430,8 @@
                         </div>
                         <div class="form-group">
                             <label>Bio</label>
-                            <textarea name="bio" rows="4">Experienced event coordinator with 3+ years in the industry. Passionate about creating memorable experiences and skilled in managing large-scale events.</textarea>
+                            <textarea name="bio"
+                                rows="4">Experienced event coordinator with 3+ years in the industry. Passionate about creating memorable experiences and skilled in managing large-scale events.</textarea>
                         </div>
 
                         <h3>Professional Details</h3>
@@ -527,13 +544,56 @@
                     <label>Withdrawal Amount</label>
                     <input type="number" id="withdraw-amount" placeholder="Enter amount" required min="1">
                 </div>
-                <div class="form-group">
-                    <label>Bank Account (Last 4 digits)</label>
-                    <input type="text" value="****1234" readonly>
+                <div class="form-group" id="bank-details-display" style="display: none;">
+                    <label>Bank Account</label>
+                    <input type="text" id="withdraw-bank-account" readonly>
+                    <small style="color: #666; display: block; margin-top: 0.5rem;" id="withdraw-bank-name"></small>
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn-outline" onclick="closeWithdrawModal()">Cancel</button>
-                    <button type="submit" class="btn-primary">Confirm Withdrawal</button>
+                    <button type="button" class="btn-outline" onclick="openBankDetailsFromWithdraw()" id="add-bank-btn"
+                        style="display: none;">Add Bank Details</button>
+                    <button type="submit" class="btn-primary" id="confirm-withdraw-btn">Confirm Withdrawal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Bank Details Modal -->
+    <div id="bank-details-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-modal" onclick="closeBankDetailsModal()">&times;</span>
+            <h2>Bank Account Details</h2>
+            <p style="color: #666; margin-bottom: 1.5rem;">Add your bank account details to withdraw funds</p>
+            <form onsubmit="handleSaveBankDetails(event)">
+                <div class="form-group">
+                    <label>Account Holder Name <span style="color: red;">*</span></label>
+                    <input type="text" id="bank-account-holder" placeholder="Enter full name as per bank" required>
+                </div>
+                <div class="form-group">
+                    <label>Account Number <span style="color: red;">*</span></label>
+                    <input type="text" id="bank-account-number" placeholder="Enter account number" required>
+                </div>
+                <div class="form-group">
+                    <label>Confirm Account Number <span style="color: red;">*</span></label>
+                    <input type="text" id="bank-account-number-confirm" placeholder="Re-enter account number" required>
+                </div>
+                <div class="form-group">
+                    <label>IFSC Code <span style="color: red;">*</span></label>
+                    <input type="text" id="bank-ifsc-code" placeholder="Enter IFSC code" required maxlength="11"
+                        style="text-transform: uppercase;">
+                </div>
+                <div class="form-group">
+                    <label>Bank Name</label>
+                    <input type="text" id="bank-name" placeholder="E.g., State Bank of India">
+                </div>
+                <div class="form-group">
+                    <label>Branch Name</label>
+                    <input type="text" id="bank-branch" placeholder="E.g., Mumbai Main Branch">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-outline" onclick="closeBankDetailsModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Bank Details</button>
                 </div>
             </form>
         </div>
@@ -576,47 +636,54 @@
 
     <!-- Job Application Form Modal -->
     <div id="application-modal" class="modal" style="display: none;">
-        <div class="modal-content application-form-modal" style="max-width: 700px; max-height: 90vh; overflow-y: auto; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 20px; border: 1px solid var(--gold); box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
-            <span class="close-modal" onclick="closeApplicationModal()" style="color: var(--gold); font-size: 2rem; cursor: pointer;">&times;</span>
-            
-            <div style="text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid rgba(218, 165, 32, 0.3);">
+        <div class="modal-content application-form-modal"
+            style="max-width: 700px; max-height: 90vh; overflow-y: auto; background: rgba(255, 255, 255, 0.864); border-radius: 20px; border: 1px solid var(--gold); box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+            <span class="close-modal" onclick="closeApplicationModal()"
+                style="color: var(--gold); font-size: 2rem; cursor: pointer;">&times;</span>
+
+            <div
+                style="text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid rgba(218, 165, 32, 0.3);">
                 <i class="fas fa-file-signature" style="font-size: 3rem; color: var(--gold); margin-bottom: 1rem;"></i>
                 <h2 style="margin: 0; color: var(--gold); font-size: 1.8rem; font-weight: 600;">
                     Job Application
                 </h2>
-                <p id="modal-job-title" style="font-size: 1rem; margin-top: 0.5rem; color: #ccc;"></p>
+                <p id="modal-job-title" style="font-size: 1rem; margin-top: 0.5rem; color: #000;"></p>
             </div>
-            
+
             <form id="application-form" class="professional-form">
                 <input type="hidden" id="apply-job-id" name="job_id">
-                
+
                 <!-- Personal Information -->
                 <div class="form-section-card">
                     <h3 class="section-title">
                         <i class="fas fa-user"></i> Personal Information
                     </h3>
-                    
+
                     <div class="form-row">
                         <div class="form-group">
                             <label for="apply-full-name">Full Name <span class="required">*</span></label>
-                            <input type="text" id="apply-full-name" name="full_name" required placeholder="Enter your full name" class="form-input">
+                            <input type="text" id="apply-full-name" name="full_name" required
+                                placeholder="Enter your full name" class="form-input">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="apply-email">Email Address <span class="required">*</span></label>
-                            <input type="email" id="apply-email" name="email" required placeholder="your.email@example.com" class="form-input">
+                            <input type="email" id="apply-email" name="email" required
+                                placeholder="your.email@example.com" class="form-input">
                         </div>
                     </div>
-                    
+
                     <div class="form-row">
                         <div class="form-group">
                             <label for="apply-phone">Phone Number <span class="required">*</span></label>
-                            <input type="tel" id="apply-phone" name="phone" required placeholder="+91 98765 43210" class="form-input">
+                            <input type="tel" id="apply-phone" name="phone" required placeholder="+91 98765 43210"
+                                class="form-input">
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="apply-city">City <span class="required">*</span></label>
-                            <input type="text" id="apply-city" name="city" required placeholder="Your city" class="form-input">
+                            <input type="text" id="apply-city" name="city" required placeholder="Your city"
+                                class="form-input">
                         </div>
                     </div>
                 </div>
@@ -626,16 +693,17 @@
                     <h3 class="section-title">
                         <i class="fas fa-briefcase"></i> Professional Details
                     </h3>
-                    
+
                     <div class="form-row">
                         <div class="form-group">
                             <label for="apply-role">Role Applying For <span class="required">*</span></label>
-                            <input type="text" id="apply-role" name="role" list="apply-role-suggestions" required placeholder="e.g., Photographer, Videographer" class="form-input">
+                            <input type="text" id="apply-role" name="role" list="apply-role-suggestions" required
+                                placeholder="e.g., Photographer, Videographer" class="form-input">
                             <datalist id="apply-role-suggestions">
                                 <!-- Dynamic suggestions will be populated here -->
                             </datalist>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="apply-experience">Years of Experience <span class="required">*</span></label>
                             <select id="apply-experience" name="experience_years" required class="form-input">
@@ -648,18 +716,22 @@
                             </select>
                         </div>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="apply-skills">Relevant Skills <span class="required">*</span></label>
-                        <textarea id="apply-skills" name="relevant_skills" list="apply-skills-suggestions" required rows="3" placeholder="List your key skills (e.g., Photography, Videography, Event Coordination...)" class="form-input"></textarea>
+                        <textarea id="apply-skills" name="relevant_skills" list="apply-skills-suggestions" required
+                            rows="3"
+                            placeholder="List your key skills (e.g., Photography, Videography, Event Coordination...)"
+                            class="form-input"></textarea>
                         <datalist id="apply-skills-suggestions">
                             <!-- Dynamic suggestions will be populated here -->
                         </datalist>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="apply-portfolio">Portfolio/Website Link</label>
-                        <input type="url" id="apply-portfolio" name="portfolio_link" placeholder="https://yourportfolio.com" class="form-input">
+                        <input type="url" id="apply-portfolio" name="portfolio_link"
+                            placeholder="https://yourportfolio.com" class="form-input">
                     </div>
                 </div>
 
@@ -668,7 +740,7 @@
                     <h3 class="section-title">
                         <i class="fas fa-calendar-check"></i> Availability & Experience
                     </h3>
-                    
+
                     <div class="form-group">
                         <label for="apply-availability">When are you available? <span class="required">*</span></label>
                         <select id="apply-availability" name="availability" required class="form-input">
@@ -680,10 +752,14 @@
                             <option value="Weekends only">Weekends only</option>
                         </select>
                     </div>
-                    
+
                     <div class="form-group">
-                        <label for="apply-previous-events">Previous Event Experience <span class="required">*</span></label>
-                        <textarea id="apply-previous-events" name="previous_events" list="apply-previous-events-suggestions" required rows="4" placeholder="Describe 2-3 relevant events you've worked on. Include event type, your role, and key achievements." class="form-input"></textarea>
+                        <label for="apply-previous-events">Previous Event Experience <span
+                                class="required">*</span></label>
+                        <textarea id="apply-previous-events" name="previous_events"
+                            list="apply-previous-events-suggestions" required rows="4"
+                            placeholder="Describe 2-3 relevant events you've worked on. Include event type, your role, and key achievements."
+                            class="form-input"></textarea>
                         <datalist id="apply-previous-events-suggestions">
                             <!-- Dynamic suggestions will be populated here -->
                         </datalist>
@@ -695,20 +771,26 @@
                     <h3 class="section-title">
                         <i class="fas fa-comment-dots"></i> Application Statement
                     </h3>
-                    
+
                     <div class="form-group">
-                        <label for="apply-why-interested">Why are you interested in this position? <span class="required">*</span></label>
-                        <textarea id="apply-why-interested" name="why_interested" required rows="4" placeholder="Tell us what excites you about this opportunity and why you're a great fit..." class="form-input"></textarea>
+                        <label for="apply-why-interested">Why are you interested in this position? <span
+                                class="required">*</span></label>
+                        <textarea id="apply-why-interested" name="why_interested" required rows="4"
+                            placeholder="Tell us what excites you about this opportunity and why you're a great fit..."
+                            class="form-input"></textarea>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="apply-cover-message">Cover Message <span class="required">*</span></label>
-                        <textarea id="apply-cover-message" name="cover_message" required rows="4" placeholder="Write a brief message to the organizer. Highlight your unique value and enthusiasm..." class="form-input"></textarea>
+                        <textarea id="apply-cover-message" name="cover_message" required rows="4"
+                            placeholder="Write a brief message to the organizer. Highlight your unique value and enthusiasm..."
+                            class="form-input"></textarea>
                     </div>
-                    
+
                     <div class="form-group">
                         <label for="apply-expected-compensation">Expected Compensation</label>
-                        <input type="text" id="apply-expected-compensation" name="expected_compensation" placeholder="e.g., ₹2000/day or Negotiable" class="form-input">
+                        <input type="text" id="apply-expected-compensation" name="expected_compensation"
+                            placeholder="e.g., ₹2000/day or Negotiable" class="form-input">
                     </div>
                 </div>
 
@@ -717,11 +799,12 @@
                     <h3 class="section-title">
                         <i class="fas fa-file-upload"></i> Resume/CV Upload
                     </h3>
-                    
+
                     <div class="form-group">
                         <label for="apply-cv">Upload Resume/CV <span class="required">*</span></label>
                         <div class="file-upload-wrapper">
-                            <input type="file" id="apply-cv" name="cv" accept=".pdf,.doc,.docx" required class="file-input">
+                            <input type="file" id="apply-cv" name="cv" accept=".pdf,.doc,.docx" required
+                                class="file-input">
                             <div class="file-upload-label">
                                 <i class="fas fa-cloud-upload-alt"></i>
                                 <span>Click to upload or drag and drop</span>
@@ -731,11 +814,13 @@
                     </div>
                 </div>
 
-                <div class="modal-actions" style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: space-between; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                <div class="modal-actions"
+                    style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: space-between; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
                     <button type="button" class="btn-outline" onclick="closeApplicationModal()" style="flex: 1;">
                         <i class="fas fa-times"></i> Cancel
                     </button>
-                    <button type="submit" class="btn-primary" style="flex: 2; background: linear-gradient(135deg, #daa520 0%, #b8860b 100%); padding: 1rem 2rem; font-size: 1.1rem;">
+                    <button type="submit" class="btn-primary"
+                        style="flex: 2; background: linear-gradient(135deg, #daa520 0%, #b8860b 100%); padding: 1rem 2rem; font-size: 1.1rem;">
                         <i class="fas fa-paper-plane"></i> Submit Application
                     </button>
                 </div>
@@ -747,4 +832,5 @@
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <script src="{% static 'js/script.js' %}"></script>
 </body>
+
 </html>

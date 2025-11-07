@@ -1,0 +1,475 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - EventFlex</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .terms-hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 6rem 0 4rem;
+            text-align: center;
+        }
+
+        .terms-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+        }
+
+        .terms-hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .terms-section {
+            padding: 4rem 0;
+        }
+
+        .terms-content {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 3rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .terms-content h2 {
+            font-size: 2rem;
+            color: var(--gold);
+            margin: 2rem 0 1rem;
+            padding-top: 1rem;
+            border-top: 2px solid #eee;
+        }
+
+        .terms-content h2:first-child {
+            margin-top: 0;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .terms-content h3 {
+            font-size: 1.4rem;
+            color: #1a1a2e;
+            margin: 1.5rem 0 1rem;
+        }
+
+        .terms-content p {
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 1rem;
+        }
+
+        .terms-content ul,
+        .terms-content ol {
+            margin: 1rem 0 1.5rem 2rem;
+            color: #666;
+        }
+
+        .terms-content li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+
+        .terms-content strong {
+            color: #1a1a2e;
+        }
+
+        .last-updated {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            color: #666;
+            font-size: 0.95rem;
+        }
+
+        .highlight-box {
+            background: #fff9e6;
+            border-left: 4px solid var(--gold);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        .toc {
+            background: #f8f9fa;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .toc h3 {
+            color: #1a1a2e;
+            margin-bottom: 1rem;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+
+        .toc a {
+            color: var(--gold);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .toc a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{% url 'home' %}"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>EventFlex</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'home' %}#features">Features</a></li>
+                <li><a href="{% url 'login_page' %}" class="btn-outline">Login</a></li>
+                <li><a href="{% url 'signup_page' %}" class="btn-primary">Sign Up</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="terms-hero">
+        <div class="container">
+            <h1>Terms of Service</h1>
+            <p>Please read these terms carefully before using EventFlex</p>
+        </div>
+    </section>
+
+    <!-- Terms Content -->
+    <section class="terms-section">
+        <div class="container">
+            <div class="terms-content">
+                <div class="last-updated">
+                    <strong>Last Updated:</strong> January 1, 2025
+                </div>
+
+                <div class="toc">
+                    <h3>Table of Contents</h3>
+                    <ul>
+                        <li><a href="#acceptance">1. Acceptance of Terms</a></li>
+                        <li><a href="#definitions">2. Definitions</a></li>
+                        <li><a href="#eligibility">3. Eligibility</a></li>
+                        <li><a href="#accounts">4. User Accounts</a></li>
+                        <li><a href="#services">5. Services and Features</a></li>
+                        <li><a href="#payments">6. Payments and Fees</a></li>
+                        <li><a href="#conduct">7. User Conduct</a></li>
+                        <li><a href="#intellectual-property">8. Intellectual Property</a></li>
+                        <li><a href="#disclaimers">9. Disclaimers</a></li>
+                        <li><a href="#liability">10. Limitation of Liability</a></li>
+                        <li><a href="#termination">11. Termination</a></li>
+                        <li><a href="#dispute-resolution">12. Dispute Resolution</a></li>
+                        <li><a href="#contact">13. Contact Information</a></li>
+                    </ul>
+                </div>
+
+                <h2 id="acceptance">1. Acceptance of Terms</h2>
+                <p>Welcome to EventFlex! These Terms of Service ("Terms") govern your access to and use of the EventFlex
+                    platform, website, and services (collectively, the "Service"). By accessing or using EventFlex, you
+                    agree to be bound by these Terms.</p>
+                <p>If you do not agree to these Terms, you may not access or use the Service. We may update these Terms
+                    from time to time, and your continued use of the Service constitutes acceptance of any changes.</p>
+
+                <h2 id="definitions">2. Definitions</h2>
+                <ul>
+                    <li><strong>"EventFlex," "we," "us," or "our"</strong> refers to EventFlex Technologies Pvt. Ltd.
+                    </li>
+                    <li><strong>"User," "you," or "your"</strong> refers to any individual or entity using the Service.
+                    </li>
+                    <li><strong>"Organizer"</strong> refers to users who post event jobs and hire event professionals.
+                    </li>
+                    <li><strong>"Professional"</strong> refers to users who offer event staffing services.</li>
+                    <li><strong>"Booking"</strong> refers to the agreement between an Organizer and Professional for
+                        event services.</li>
+                    <li><strong>"Platform"</strong> refers to the EventFlex website, mobile applications, and related
+                        services.</li>
+                </ul>
+
+                <h2 id="eligibility">3. Eligibility</h2>
+                <p>To use EventFlex, you must:</p>
+                <ul>
+                    <li>Be at least 18 years of age</li>
+                    <li>Have the legal capacity to enter into binding contracts</li>
+                    <li>Not be prohibited from using the Service under applicable laws</li>
+                    <li>Provide accurate and complete registration information</li>
+                    <li>Maintain the security of your account credentials</li>
+                </ul>
+                <p>By using the Service, you represent and warrant that you meet all eligibility requirements.</p>
+
+                <h2 id="accounts">4. User Accounts</h2>
+
+                <h3>4.1 Account Creation</h3>
+                <p>You must create an account to access most features of the Service. You agree to:</p>
+                <ul>
+                    <li>Provide accurate, current, and complete information</li>
+                    <li>Maintain and promptly update your account information</li>
+                    <li>Keep your password secure and confidential</li>
+                    <li>Notify us immediately of any unauthorized access</li>
+                    <li>Accept responsibility for all activities under your account</li>
+                </ul>
+
+                <h3>4.2 Account Types</h3>
+                <p><strong>Organizer Accounts:</strong> For posting event jobs, hiring professionals, and managing
+                    bookings.</p>
+                <p><strong>Professional Accounts:</strong> For applying to jobs, offering services, and receiving
+                    payments.</p>
+
+                <h3>4.3 Verification</h3>
+                <p>We may require identity verification through document submission. Verified accounts gain access to
+                    additional features and higher visibility on the platform.</p>
+
+                <div class="highlight-box">
+                    <strong>Important:</strong> You are responsible for maintaining the confidentiality of your account
+                    credentials. EventFlex is not liable for any loss or damage arising from unauthorized account
+                    access.
+                </div>
+
+                <h2 id="services">5. Services and Features</h2>
+
+                <h3>5.1 For Organizers</h3>
+                <ul>
+                    <li>Post event job listings with detailed requirements</li>
+                    <li>Search and filter available professionals</li>
+                    <li>Review applications and profiles</li>
+                    <li>Hire and manage event staff</li>
+                    <li>Communicate through the platform messaging system</li>
+                    <li>Make secure payments through escrow</li>
+                </ul>
+
+                <h3>5.2 For Professionals</h3>
+                <ul>
+                    <li>Create detailed professional profiles</li>
+                    <li>Browse and apply for event jobs</li>
+                    <li>Receive AI-powered job recommendations</li>
+                    <li>Communicate with potential employers</li>
+                    <li>Receive secure payments for completed work</li>
+                    <li>Build reputation through ratings and reviews</li>
+                </ul>
+
+                <h3>5.3 Platform Features</h3>
+                <p>EventFlex provides tools for job posting, application management, secure messaging, payment
+                    processing, and dispute resolution. We continuously improve and may add, modify, or discontinue
+                    features at our discretion.</p>
+
+                <h2 id="payments">6. Payments and Fees</h2>
+
+                <h3>6.1 Service Fees</h3>
+                <p>EventFlex charges a service fee of 5% on successful bookings. This fee covers:</p>
+                <ul>
+                    <li>Platform maintenance and hosting</li>
+                    <li>Payment processing and escrow services</li>
+                    <li>Customer support</li>
+                    <li>Feature development and improvements</li>
+                    <li>Security and fraud prevention</li>
+                </ul>
+
+                <h3>6.2 Escrow System</h3>
+                <p>Payments for bookings are held in escrow until the event is completed. This protects both Organizers
+                    and Professionals:</p>
+                <ol>
+                    <li>Organizer commits payment when accepting a Professional</li>
+                    <li>Funds are held securely in escrow</li>
+                    <li>After event completion, Organizer releases payment</li>
+                    <li>Funds are transferred to Professional's wallet</li>
+                    <li>Professional can withdraw to their bank account</li>
+                </ol>
+
+                <h3>6.3 Payment Processing</h3>
+                <p>We use third-party payment processors. By using payment services, you agree to their terms. EventFlex
+                    is not responsible for errors or issues arising from third-party processors.</p>
+
+                <h3>6.4 Refunds</h3>
+                <p>Refund eligibility depends on the circumstances:</p>
+                <ul>
+                    <li><strong>Before event:</strong> Cancellation policies apply as agreed between parties</li>
+                    <li><strong>Professional no-show:</strong> Full refund to Organizer</li>
+                    <li><strong>Organizer cancellation:</strong> Compensation to Professional as per cancellation timing
+                    </li>
+                    <li><strong>Disputes:</strong> Resolved through our dispute resolution process</li>
+                </ul>
+
+                <h3>6.5 Subscription Plans</h3>
+                <p>Premium subscription plans are billed monthly or annually. Subscriptions automatically renew unless
+                    cancelled before the renewal date. No partial refunds for cancelled subscriptions.</p>
+
+                <h2 id="conduct">7. User Conduct</h2>
+                <p>You agree NOT to:</p>
+                <ul>
+                    <li>Violate any applicable laws or regulations</li>
+                    <li>Provide false, misleading, or fraudulent information</li>
+                    <li>Impersonate any person or entity</li>
+                    <li>Harass, abuse, or harm other users</li>
+                    <li>Post offensive, discriminatory, or inappropriate content</li>
+                    <li>Attempt to circumvent the platform to avoid fees</li>
+                    <li>Share contact information to conduct transactions off-platform</li>
+                    <li>Use automated systems (bots) without authorization</li>
+                    <li>Interfere with platform security or functionality</li>
+                    <li>Collect user information without consent</li>
+                    <li>Post spam or unsolicited advertisements</li>
+                    <li>Manipulate ratings or reviews</li>
+                </ul>
+
+                <div class="highlight-box">
+                    <strong>Warning:</strong> Violation of these terms may result in account suspension or termination,
+                    forfeiture of payments, and potential legal action.
+                </div>
+
+                <h2 id="intellectual-property">8. Intellectual Property</h2>
+
+                <h3>8.1 EventFlex Property</h3>
+                <p>All content, features, and functionality of the Service, including but not limited to text, graphics,
+                    logos, icons, images, software, and design, are owned by EventFlex and protected by copyright,
+                    trademark, and other intellectual property laws.</p>
+
+                <h3>8.2 User Content</h3>
+                <p>You retain ownership of content you post (profiles, job listings, messages, etc.). By posting
+                    content, you grant EventFlex a worldwide, non-exclusive, royalty-free license to use, reproduce,
+                    modify, and display your content for operating and promoting the Service.</p>
+
+                <h3>8.3 Trademarks</h3>
+                <p>"EventFlex" and associated logos are trademarks of EventFlex Technologies Pvt. Ltd. You may not use
+                    our trademarks without prior written permission.</p>
+
+                <h2 id="disclaimers">9. Disclaimers</h2>
+                <p><strong>THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND.</strong>
+                </p>
+                <p>EventFlex is a platform connecting Organizers and Professionals. We do not:</p>
+                <ul>
+                    <li>Employ Professionals or act as an employer</li>
+                    <li>Guarantee the quality of services provided by Professionals</li>
+                    <li>Guarantee the accuracy of user-provided information</li>
+                    <li>Control the conduct of users on or off the platform</li>
+                    <li>Guarantee successful bookings or outcomes</li>
+                    <li>Warrant uninterrupted or error-free service</li>
+                </ul>
+                <p>Users are responsible for their own interactions, agreements, and transactions. We recommend
+                    thoroughly reviewing profiles, communicating clearly, and using the platform's features for
+                    protection.</p>
+
+                <h2 id="liability">10. Limitation of Liability</h2>
+                <p>TO THE MAXIMUM EXTENT PERMITTED BY LAW, EVENTFLEX SHALL NOT BE LIABLE FOR:</p>
+                <ul>
+                    <li>Indirect, incidental, special, consequential, or punitive damages</li>
+                    <li>Loss of profits, data, use, or goodwill</li>
+                    <li>Service interruptions or errors</li>
+                    <li>User conduct or content</li>
+                    <li>Third-party services or links</li>
+                    <li>Unauthorized access to your account or data</li>
+                </ul>
+                <p>Our total liability for any claim arising from the Service shall not exceed the amount you paid to
+                    EventFlex in the 12 months preceding the claim, or ₹10,000, whichever is less.</p>
+
+                <h2 id="termination">11. Termination</h2>
+
+                <h3>11.1 By You</h3>
+                <p>You may terminate your account at any time through account settings or by contacting us. Upon
+                    termination:</p>
+                <ul>
+                    <li>Active bookings must be completed or resolved</li>
+                    <li>Pending payments will be processed</li>
+                    <li>Your profile and content will be deactivated</li>
+                    <li>Some information may be retained as required by law</li>
+                </ul>
+
+                <h3>11.2 By EventFlex</h3>
+                <p>We may suspend or terminate your account if you:</p>
+                <ul>
+                    <li>Violate these Terms</li>
+                    <li>Engage in fraudulent activity</li>
+                    <li>Receive multiple complaints from other users</li>
+                    <li>Fail to pay applicable fees</li>
+                    <li>Engage in illegal activities</li>
+                </ul>
+                <p>We will provide notice when possible, but may terminate immediately for serious violations.</p>
+
+                <h2 id="dispute-resolution">12. Dispute Resolution</h2>
+
+                <h3>12.1 User Disputes</h3>
+                <p>Disputes between users should first be resolved directly. If resolution fails, our support team can
+                    mediate. For payment disputes, escrow funds will be held until resolution.</p>
+
+                <h3>12.2 Disputes with EventFlex</h3>
+                <p>For disputes with EventFlex:</p>
+                <ol>
+                    <li><strong>Contact us:</strong> Attempt to resolve through support@eventflex.com</li>
+                    <li><strong>Negotiation:</strong> We'll work in good faith to resolve the issue</li>
+                    <li><strong>Arbitration:</strong> If unresolved, disputes shall be resolved through arbitration in
+                        Bangalore, India</li>
+                </ol>
+
+                <h3>12.3 Governing Law</h3>
+                <p>These Terms are governed by the laws of India. Jurisdiction for any disputes shall be Bangalore,
+                    Karnataka.</p>
+
+                <h2>13. General Provisions</h2>
+
+                <h3>13.1 Entire Agreement</h3>
+                <p>These Terms, along with our Privacy Policy, constitute the entire agreement between you and
+                    EventFlex.</p>
+
+                <h3>13.2 Severability</h3>
+                <p>If any provision is found unenforceable, the remaining provisions remain in effect.</p>
+
+                <h3>13.3 Waiver</h3>
+                <p>Failure to enforce any provision does not constitute a waiver of that provision.</p>
+
+                <h3>13.4 Assignment</h3>
+                <p>You may not assign or transfer these Terms. EventFlex may assign these Terms without restriction.</p>
+
+                <h3>13.5 Force Majeure</h3>
+                <p>EventFlex is not liable for delays or failures due to circumstances beyond reasonable control.</p>
+
+                <h2 id="contact">14. Contact Information</h2>
+                <p>For questions about these Terms, contact us:</p>
+                <ul>
+                    <li><strong>Email:</strong> <a href="mailto:legal@eventflex.com">legal@eventflex.com</a></li>
+                    <li><strong>Address:</strong> EventFlex Technologies Pvt. Ltd., 123 Business Park, MG Road,
+                        Bangalore, Karnataka 560001, India</li>
+                    <li><strong>Phone:</strong> +91 12345 67890</li>
+                </ul>
+
+                <div class="highlight-box">
+                    <strong>Acknowledgment:</strong> By using EventFlex, you acknowledge that you have read, understood,
+                    and agree to be bound by these Terms of Service.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2025 EventFlex. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+
+</html>

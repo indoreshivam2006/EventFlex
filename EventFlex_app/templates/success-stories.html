@@ -1,0 +1,330 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Success Stories - EventFlex</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .success-hero {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 6rem 0 4rem;
+            text-align: center;
+        }
+
+        .success-hero h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+        }
+
+        .success-hero p {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .stories-section {
+            padding: 4rem 0;
+        }
+
+        .story-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .story-card:hover {
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .story-header {
+            background: linear-gradient(135deg, #DAA520 0%, #FFD700 100%);
+            padding: 3rem 2rem;
+            text-align: center;
+            color: white;
+        }
+
+        .story-header h3 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .story-header .company {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .story-content {
+            padding: 2.5rem;
+        }
+
+        .story-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--gold);
+            display: block;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .testimonial {
+            font-size: 1.2rem;
+            font-style: italic;
+            color: #333;
+            padding: 2rem;
+            border-left: 4px solid var(--gold);
+            background: #f8f9fa;
+            margin: 2rem 0;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            margin-top: 1.5rem;
+            font-style: normal;
+        }
+
+        .author-image {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .author-info {
+            font-style: normal;
+        }
+
+        .author-name {
+            font-weight: bold;
+            color: #1a1a2e;
+        }
+
+        .author-role {
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{% url 'home' %}"
+                    style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+                    <i class="fas fa-calendar-check"></i>
+                    <span>EventFlex</span>
+                </a>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'home' %}#features">Features</a></li>
+                <li><a href="{% url 'success_stories_page' %}" class="active">Success Stories</a></li>
+                <li><a href="{% url 'login_page' %}" class="btn-outline">Login</a></li>
+                <li><a href="{% url 'signup_page' %}" class="btn-primary">Sign Up</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="success-hero">
+        <div class="container">
+            <h1>Success Stories</h1>
+            <p>Discover how event organizers and professionals are transforming their businesses with EventFlex</p>
+        </div>
+    </section>
+
+    <!-- Success Stories -->
+    <section class="stories-section">
+        <div class="container">
+            <!-- Story 1 -->
+            <div class="story-card">
+                <div class="story-header">
+                    <h3>"From Struggling to Thriving"</h3>
+                    <p class="company">Elegance Events by Priya Sharma</p>
+                </div>
+                <div class="story-content">
+                    <div class="story-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">150+</span>
+                            <span class="stat-label">Events Completed</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">₹50L</span>
+                            <span class="stat-label">Revenue Generated</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">300+</span>
+                            <span class="stat-label">Staff Hired</span>
+                        </div>
+                    </div>
+                    <div class="testimonial">
+                        "Before EventFlex, finding reliable event staff was a nightmare. I would spend hours making
+                        calls, only to have people bail at the last minute. Now, I can hire verified professionals in
+                        minutes. My business has grown 3x in just one year!"
+                        <div class="testimonial-author">
+                            <div class="author-image">PS</div>
+                            <div class="author-info">
+                                <div class="author-name">Priya Sharma</div>
+                                <div class="author-role">Founder, Elegance Events</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p><strong>The Challenge:</strong> Priya was managing a small event planning company but struggled
+                        with last-minute cancellations and unreliable staff. This led to stressed clients and damaged
+                        reputation.</p>
+                    <p><strong>The Solution:</strong> After joining EventFlex, Priya gained access to a pool of verified
+                        professionals. The platform's escrow payment system gave her staff confidence, reducing
+                        cancellations by 95%.</p>
+                    <p><strong>The Results:</strong> Within 6 months, Priya's client satisfaction rating jumped to
+                        4.9/5. She now handles 3x more events and has expanded to two new cities.</p>
+                </div>
+            </div>
+
+            <!-- Story 2 -->
+            <div class="story-card">
+                <div class="story-header">
+                    <h3>"Building a Sustainable Career"</h3>
+                    <p class="company">Rajesh Kumar - Event Professional</p>
+                </div>
+                <div class="story-content">
+                    <div class="story-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">200+</span>
+                            <span class="stat-label">Gigs Completed</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">₹8L</span>
+                            <span class="stat-label">Annual Income</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">4.95</span>
+                            <span class="stat-label">Average Rating</span>
+                        </div>
+                    </div>
+                    <div class="testimonial">
+                        "EventFlex gave me financial security I never had before. Transparent payments, verified
+                        clients, and consistent work opportunities transformed my freelance career into a stable income
+                        source. I even bought my first car last month!"
+                        <div class="testimonial-author">
+                            <div class="author-image">RK</div>
+                            <div class="author-info">
+                                <div class="author-name">Rajesh Kumar</div>
+                                <div class="author-role">Senior Event Coordinator</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p><strong>The Challenge:</strong> Rajesh worked as a freelance event coordinator but faced payment
+                        delays, last-minute job changes, and difficulty finding consistent work.</p>
+                    <p><strong>The Solution:</strong> EventFlex's escrow system ensured timely payments, while the
+                        verification badge helped him stand out. The AI matching connected him with organizers looking
+                        for his specific skills.</p>
+                    <p><strong>The Results:</strong> Rajesh now earns 60% more than before, works with reputable
+                        clients, and has built a strong professional network through the platform.</p>
+                </div>
+            </div>
+
+            <!-- Story 3 -->
+            <div class="story-card">
+                <div class="story-header">
+                    <h3>"Scaling to New Heights"</h3>
+                    <p class="company">Grand Occasions Pvt. Ltd.</p>
+                </div>
+                <div class="story-content">
+                    <div class="story-stats">
+                        <div class="stat-item">
+                            <span class="stat-value">500+</span>
+                            <span class="stat-label">Corporate Events</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">₹2Cr</span>
+                            <span class="stat-label">Annual Turnover</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">1000+</span>
+                            <span class="stat-label">Staff Network</span>
+                        </div>
+                    </div>
+                    <div class="testimonial">
+                        "As we expanded from weddings to large corporate events, staffing became our biggest bottleneck.
+                        EventFlex's enterprise features let us manage hundreds of staff across multiple events
+                        simultaneously. It's been a game-changer for our growth."
+                        <div class="testimonial-author">
+                            <div class="author-image">AJ</div>
+                            <div class="author-info">
+                                <div class="author-name">Anita Joshi</div>
+                                <div class="author-role">CEO, Grand Occasions Pvt. Ltd.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p><strong>The Challenge:</strong> Grand Occasions was growing rapidly but their manual staffing
+                        process couldn't scale. They needed to hire 50-100 staff for single events but lacked the
+                        infrastructure.</p>
+                    <p><strong>The Solution:</strong> The enterprise plan provided bulk hiring features, dedicated
+                        account management, and custom integrations with their existing systems.</p>
+                    <p><strong>The Results:</strong> Grand Occasions now handles India's largest corporate events,
+                        reduced hiring time by 80%, and achieved 99.2% staff show-up rate.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to Write Your Success Story?</h2>
+            <p>Join thousands of event professionals and organizers who trust EventFlex</p>
+            <div class="cta-buttons">
+                <a href="{% url 'signup_page' %}" class="btn-primary">Get Started Free</a>
+                <a href="{% url 'contact_page' %}" class="btn-outline">Contact Sales</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2025 EventFlex. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+
+</html>

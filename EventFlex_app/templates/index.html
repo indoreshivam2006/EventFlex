@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar">
@@ -24,7 +26,8 @@
                 <li id="nav-signup-item"><a href="{% url 'signup_page' %}" class="btn-primary">Sign Up</a></li>
                 <li id="nav-user-item" style="display: none;">
                     <div class="nav-user-profile">
-                        <img id="nav-user-avatar" src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" alt="Profile">
+                        <img id="nav-user-avatar"
+                            src="https://ui-avatars.com/api/?name=User&background=6366f1&color=fff" alt="Profile">
                         <span id="nav-user-name">User</span>
                     </div>
                 </li>
@@ -45,7 +48,8 @@
         <div class="container">
             <div class="hero-content">
                 <h1 class="hero-title">Find Trusted Event Staff in Minutes</h1>
-                <p class="hero-subtitle">India's #1 On-Demand Platform connecting Event Organizers with Pre-Vetted, Professional Gig Workers</p>
+                <p class="hero-subtitle">India's #1 On-Demand Platform connecting Event Organizers with Pre-Vetted,
+                    Professional Gig Workers</p>
                 <div class="hero-stats">
                     <div class="stat">
                         <h3>{{ total_professionals|default:"10,000" }}+</h3>
@@ -91,7 +95,7 @@
         <div class="container">
             <h2 class="section-title">Why Choose EventFlex?</h2>
             <p class="section-subtitle">Solving India's Event Staffing Crisis with Trust, Speed & Efficiency</p>
-            
+
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -100,7 +104,7 @@
                     <h3>Pre-Vetted Professionals</h3>
                     <p>Every staff member is verified through KYC, video intro, and skill assessments</p>
                 </div>
-                
+
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-brain"></i>
@@ -108,7 +112,7 @@
                     <h3>Smart Matching Algorithm</h3>
                     <p>AI-powered matching based on skills, location, ratings, and past performance</p>
                 </div>
-                
+
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-lock"></i>
@@ -116,7 +120,7 @@
                     <h3>Secure Escrow Payments</h3>
                     <p>Protected payments ensure staff get paid on time, every time</p>
                 </div>
-                
+
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-qrcode"></i>
@@ -124,7 +128,7 @@
                     <h3>QR Code Check-In</h3>
                     <p>Geo-fenced attendance tracking and real-time work hour monitoring</p>
                 </div>
-                
+
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-star"></i>
@@ -132,7 +136,7 @@
                     <h3>Rating & Reputation System</h3>
                     <p>Build verifiable track records with badges: Rising Star, Pro, Elite</p>
                 </div>
-                
+
                 <div class="feature-card">
                     <div class="feature-icon">
                         <i class="fas fa-comment-dots"></i>
@@ -148,12 +152,12 @@
     <section id="how-it-works" class="how-it-works">
         <div class="container">
             <h2 class="section-title">How It Works</h2>
-            
+
             <div class="tabs">
                 <button class="tab-btn active" data-tab="organizer">For Event Organizers</button>
                 <button class="tab-btn" data-tab="staff">For Event Pros</button>
             </div>
-            
+
             <div class="tab-content active" id="organizer">
                 <div class="steps">
                     <div class="step">
@@ -186,7 +190,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="tab-content" id="staff">
                 <div class="steps">
                     <div class="step">
@@ -242,44 +246,44 @@
                     <h3><i class="fas fa-calendar-check"></i> EventFlex</h3>
                     <p>India's premier platform connecting event organizers with verified professionals.</p>
                     <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-linkedin"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="https://www.facebook.com/"><i class="fab fa-facebook"></i></a>
+                        <a href="https://x.com/login"><i class="fab fa-twitter"></i></a>
+                        <a href="https://www.linkedin.com/"><i class="fab fa-linkedin"></i></a>
+                        <a href="https://www.instagram.com/"><i class="fab fa-instagram"></i></a>
                     </div>
                 </div>
-                
+
                 <div class="footer-col">
                     <h4>For Organizers</h4>
                     <ul>
                         <li><a href="{% url 'organizer_dashboard' %}">Post a Job</a></li>
                         <li><a href="{% url 'organizer_dashboard' %}">Find Talent</a></li>
-                        <li><a href="#">Pricing</a></li>
-                        <li><a href="#">Success Stories</a></li>
+                        <li><a href="{% url 'pricing_page' %}">Pricing</a></li>
+                        <li><a href="{% url 'success_stories_page' %}">Success Stories</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="footer-col">
                     <h4>For Event Pros</h4>
                     <ul>
                         <li><a href="{% url 'staff_portal' %}">Find Jobs</a></li>
-                        <li><a href="{% url 'staff_portal' %}">Build Profile</a></li>
-                        <li><a href="#">Verification</a></li>
-                        <li><a href="#">FAQs</a></li>
+                        <li><a href="{% url 'login_page' %}">Build Profile</a></li>
+                        <li><a href="{% url 'verification_page' %}">Verification</a></li>
+                        <li><a href="{% url 'faqs_page' %}">FAQs</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="footer-col">
                     <h4>Company</h4>
                     <ul>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Contact</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="{% url 'about_us_page' %}">About Us</a></li>
+                        <li><a href="{% url 'contact_page' %}">Contact</a></li>
+                        <li><a href="{% url 'privacy_policy_page' %}">Privacy Policy</a></li>
+                        <li><a href="{% url 'terms_page' %}">Terms of Service</a></li>
                     </ul>
                 </div>
             </div>
-            
+
             <div class="footer-bottom">
                 <p>&copy; 2025 EventFlex. All rights reserved. | Built with ❤️ for India's Gig Economy</p>
             </div>
@@ -288,4 +292,5 @@
 
     <script src="{% static 'js/script.js' %}"></script>
 </body>
+
 </html>
