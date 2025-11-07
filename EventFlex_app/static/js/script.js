@@ -2959,6 +2959,20 @@
                 portfolioSection.style.display = 'none';
             }
             
+            // Resume/CV (show/hide section)
+            const resumeSection = document.getElementById('resume-section');
+            if (app.resume) {
+                resumeSection.style.display = 'block';
+                const resumeLink = document.getElementById('applicant-resume');
+                resumeLink.href = app.resume;
+                
+                // Extract filename from the URL path
+                const filename = app.resume.split('/').pop();
+                document.getElementById('resume-filename').textContent = filename || 'Download Resume';
+            } else {
+                resumeSection.style.display = 'none';
+            }
+            
             // Cover message (show/hide section)
             const coverMessageSection = document.getElementById('cover-message-section');
             if (app.cover_message) {
@@ -3120,3 +3134,367 @@
 })();
 
 
+// ==========================================
+// AUTOCOMPLETE FUNCTIONALITY
+// ==========================================
+(function() {
+    const API_BASE = '/api';
+    
+    // Field mappings for autocomplete
+    const autocompleteFields = {
+        // Organizer job posting form
+        'event_type': 'event_type',
+        'role': 'role',
+        'location': 'location',
+        'skillInput': 'skills',
+        
+        // Staff application form
+        'apply-role': 'role',
+        'apply-skills': 'skills',
+        'apply-previous-events': 'previous_events'
+    };
+    
+    // Load suggestions for a specific field
+    async function loadSuggestions(fieldId, fieldType) {
+        try {
+            const response = await fetch(`${API_BASE}/autocomplete/suggestions/?field_type=${fieldType}`);
+            if (!response.ok) return;
+            
+            const data = await response.json();
+            const datalistId = fieldId.includes('apply-') 
+                ? `${fieldId}-suggestions` 
+                : `${fieldId.replace('Input', '')}-suggestions`;
+            
+            const datalist = document.getElementById(datalistId);
+            if (!datalist) return;
+            
+            // Clear existing options
+            datalist.innerHTML = '';
+            
+            // Add suggestions
+            data.suggestions.forEach(suggestion => {
+                const option = document.createElement('option');
+                option.value = suggestion.value;
+                datalist.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading autocomplete suggestions:', error);
+        }
+    }
+    
+    // Save suggestion when user submits or changes value
+    async function saveSuggestion(fieldType, value) {
+        if (!value || value.trim().length < 2) return;
+        
+        try {
+            await fetch(`${API_BASE}/autocomplete/save/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify({
+                    field_type: fieldType,
+                    value: value.trim()
+                })
+            });
+        } catch (error) {
+            console.error('Error saving autocomplete suggestion:', error);
+        }
+    }
+    
+    // Initialize autocomplete for all fields
+    function initializeAutocomplete() {
+        Object.keys(autocompleteFields).forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            const inputField = document.querySelector(`input[name="${fieldId}"], textarea[name="${fieldId}"]`);
+            const targetField = field || inputField;
+            
+            if (targetField) {
+                const fieldType = autocompleteFields[fieldId];
+                
+                // Load suggestions on page load
+                loadSuggestions(fieldId, fieldType);
+                
+                // Save suggestion when user blurs the field
+                targetField.addEventListener('blur', function() {
+                    if (this.value) {
+                        saveSuggestion(fieldType, this.value);
+                        // Reload suggestions to show the new one
+                        setTimeout(() => loadSuggestions(fieldId, fieldType), 500);
+                    }
+                });
+            }
+        });
+        
+        // Special handling for job post form submission
+        const jobPostForm = document.getElementById('jobPostForm');
+        if (jobPostForm) {
+            jobPostForm.addEventListener('submit', function(e) {
+                // Save all field values as suggestions
+                const eventType = document.querySelector('[name="event_type"]');
+                const role = document.querySelector('[name="role"]');
+                const location = document.querySelector('[name="location"]');
+                const skills = document.querySelector('[name="skills"]');
+                
+                if (eventType && eventType.value) saveSuggestion('event_type', eventType.value);
+                if (role && role.value) saveSuggestion('role', role.value);
+                if (location && location.value) saveSuggestion('location', location.value);
+                if (skills && skills.value) saveSuggestion('skills', skills.value);
+            });
+        }
+        
+        // Special handling for application form submission
+        const applicationForm = document.getElementById('application-form');
+        if (applicationForm) {
+            applicationForm.addEventListener('submit', function(e) {
+                const role = document.getElementById('apply-role');
+                const skills = document.getElementById('apply-skills');
+                const previousEvents = document.getElementById('apply-previous-events');
+                
+                if (role && role.value) saveSuggestion('role', role.value);
+                if (skills && skills.value) saveSuggestion('skills', skills.value);
+                if (previousEvents && previousEvents.value) saveSuggestion('previous_events', previousEvents.value);
+            });
+        }
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeAutocomplete);
+    } else {
+        initializeAutocomplete();
+    }
+    
+    // Re-initialize when modals are shown
+    window.addEventListener('modalShown', initializeAutocomplete);
+})();
+
+
+// ==========================================
+// CURRENT LOCATION FUNCTIONALITY
+// ==========================================
+(function() {
+    const getCurrentLocationBtn = document.getElementById('get-current-location-btn');
+    const locationInput = document.getElementById('job-location-input');
+    
+    if (!getCurrentLocationBtn || !locationInput) return;
+    
+    // Function to get human-readable address from coordinates using multiple services
+    async function reverseGeocode(latitude, longitude) {
+        try {
+            // First try: Google Geocoding API (more accurate)
+            // Using a fallback to OpenStreetMap if this fails
+            
+            // Method 1: Try BigDataCloud API (free, no API key, very accurate)
+            try {
+                const bdcResponse = await fetch(
+                    `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`
+                );
+                
+                if (bdcResponse.ok) {
+                    const bdcData = await bdcResponse.json();
+                    
+                    // Build detailed address
+                    let formattedAddress = '';
+                    
+                    if (bdcData.locality) {
+                        formattedAddress += bdcData.locality;
+                    }
+                    if (bdcData.city && bdcData.city !== bdcData.locality) {
+                        formattedAddress += (formattedAddress ? ', ' : '') + bdcData.city;
+                    }
+                    if (bdcData.principalSubdivision) {
+                        formattedAddress += (formattedAddress ? ', ' : '') + bdcData.principalSubdivision;
+                    }
+                    if (bdcData.countryName) {
+                        formattedAddress += (formattedAddress ? ', ' : '') + bdcData.countryName;
+                    }
+                    
+                    if (formattedAddress) {
+                        console.log('BigDataCloud address:', formattedAddress);
+                        return formattedAddress;
+                    }
+                }
+            } catch (bdcError) {
+                console.log('BigDataCloud failed, trying OpenStreetMap...');
+            }
+            
+            // Method 2: OpenStreetMap Nominatim (fallback)
+            const osmResponse = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+                {
+                    headers: {
+                        'User-Agent': 'EventFlex-App/1.0'
+                    }
+                }
+            );
+            
+            if (!osmResponse.ok) {
+                throw new Error('Geocoding service unavailable');
+            }
+            
+            const osmData = await osmResponse.json();
+            const address = osmData.address;
+            
+            // Build a more accurate, concise address
+            let formattedAddress = '';
+            
+            // For venues/buildings
+            if (address.amenity || address.building) {
+                formattedAddress += (address.amenity || address.building) + ', ';
+            }
+            
+            // Area information
+            if (address.suburb || address.neighbourhood) {
+                formattedAddress += (address.suburb || address.neighbourhood) + ', ';
+            }
+            
+            // City - prioritize city, then town, then village
+            const cityName = address.city || address.town || address.village || address.municipality;
+            if (cityName) {
+                formattedAddress += cityName + ', ';
+            }
+            
+            // State/Province
+            if (address.state || address.province) {
+                formattedAddress += (address.state || address.province) + ', ';
+            }
+            
+            // Country
+            if (address.country) {
+                formattedAddress += address.country;
+            }
+            
+            // Clean up formatting
+            formattedAddress = formattedAddress.replace(/,\s*$/, '').replace(/,\s*,/g, ',').trim();
+            
+            if (formattedAddress) {
+                console.log('OpenStreetMap address:', formattedAddress);
+                return formattedAddress;
+            }
+            
+            // If all else fails, return display name
+            return osmData.display_name;
+            
+        } catch (error) {
+            console.error('Reverse geocoding error:', error);
+            
+            // Method 3: Last resort - try geocode.xyz (another free service)
+            try {
+                const geoResponse = await fetch(
+                    `https://geocode.xyz/${latitude},${longitude}?json=1`
+                );
+                
+                if (geoResponse.ok) {
+                    const geoData = await geoResponse.json();
+                    if (geoData.city && geoData.country) {
+                        const fallbackAddress = `${geoData.city}, ${geoData.state || geoData.region || ''}, ${geoData.country}`.replace(/,\s*,/g, ',').trim();
+                        console.log('Geocode.xyz address:', fallbackAddress);
+                        return fallbackAddress;
+                    }
+                }
+            } catch (fallbackError) {
+                console.log('All geocoding services failed');
+            }
+            
+            // Ultimate fallback: return coordinates
+            return `Lat: ${latitude.toFixed(6)}, Long: ${longitude.toFixed(6)}`;
+        }
+    }
+    
+    // Get current location with improved accuracy
+    getCurrentLocationBtn.addEventListener('click', async function() {
+        // Check if geolocation is supported
+        if (!navigator.geolocation) {
+            showToast('Geolocation is not supported by your browser', 'error');
+            return;
+        }
+        
+        // Disable button and show loading state
+        getCurrentLocationBtn.disabled = true;
+        getCurrentLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting Location...';
+        
+        try {
+            console.log('🔍 Requesting GPS location...');
+            
+            // Get position with high accuracy settings
+            const position = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,  // Use GPS if available
+                    timeout: 20000,            // Wait up to 20 seconds
+                    maximumAge: 0              // Don't use cached position
+                });
+            });
+            
+            const { latitude, longitude, accuracy } = position.coords;
+            console.log(`📍 Location: ${latitude}, ${longitude} (accuracy: ${accuracy}m)`);
+            
+            // Update button text
+            getCurrentLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Finding Address...';
+            
+            // Get human-readable address
+            const address = await reverseGeocode(latitude, longitude);
+            console.log(`✅ Address: ${address}`);
+            
+            // Set the location input value
+            locationInput.value = address;
+            locationInput.focus();
+            
+            // Trigger input event for any listeners
+            locationInput.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            // Save to autocomplete suggestions
+            setTimeout(() => {
+                if (address && address.length > 3) {
+                    fetch('/api/autocomplete/save/', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            field_type: 'location',
+                            value: address
+                        })
+                    }).catch(err => console.error('Failed to save location suggestion:', err));
+                }
+            }, 500);
+            
+            // Show appropriate message based on accuracy
+            if (accuracy <= 100) {
+                showToast('📍 Location detected successfully!', 'success');
+            } else {
+                showToast(`📍 Location detected (${Math.round(accuracy)}m accuracy)`, 'success');
+            }
+            
+        } catch (error) {
+            console.error('❌ Location error:', error);
+            
+            let errorMessage = 'Unable to get location';
+            
+            if (error.code) {
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMessage = 'Location access denied. Please allow location in browser settings.';
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMessage = 'Location unavailable. Please enable GPS/Location services.';
+                        break;
+                    case error.TIMEOUT:
+                        errorMessage = 'Location request timed out. Please try again.';
+                        break;
+                    default:
+                        errorMessage = 'Error getting location. Please try again.';
+                }
+            }
+            
+            showToast(errorMessage, 'error');
+            
+        } finally {
+            // Re-enable button
+            getCurrentLocationBtn.disabled = false;
+            getCurrentLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i> Current Location';
+        }
+    });
+})();

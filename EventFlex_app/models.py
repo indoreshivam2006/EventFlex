@@ -83,3 +83,31 @@ class Message(models.Model):
 	def __str__(self):
 		return f"{self.sender} -> {self.recipient}"
 
+
+class AutocompleteSuggestion(models.Model):
+	"""Store autocomplete suggestions for forms"""
+	FIELD_TYPES = (
+		('event_type', 'Event Type'),
+		('role', 'Role/Position'),
+		('skills', 'Skills'),
+		('location', 'Location'),
+		('requirements', 'Requirements'),
+		('city', 'City'),
+		('previous_events', 'Previous Events'),
+	)
+	
+	field_type = models.CharField(max_length=50, choices=FIELD_TYPES)
+	value = models.CharField(max_length=500)
+	usage_count = models.PositiveIntegerField(default=1)
+	created_by = models.ForeignKey(UserProfile, on_delete=models.CASCADE, null=True, blank=True)
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+	
+	class Meta:
+		unique_together = ('field_type', 'value')
+		ordering = ['-usage_count', '-updated_at']
+	
+	def __str__(self):
+		return f"{self.field_type}: {self.value}"
+
+

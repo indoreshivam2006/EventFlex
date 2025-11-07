@@ -40,4 +40,8 @@ urlpatterns = [
     path('auth/register/', views.register_view, name='register'),
     path('auth/login/', views.login_view, name='login'),
     path('auth/logout/', views.logout_view, name='logout'),
+    
+    # Autocomplete endpoints
+    path('autocomplete/suggestions/', views.get_autocomplete_suggestions, name='get_autocomplete_suggestions'),
+    path('autocomplete/save/', views.save_autocomplete_suggestion, name='save_autocomplete_suggestion'),
 ]

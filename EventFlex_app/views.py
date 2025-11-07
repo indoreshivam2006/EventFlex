@@ -3,7 +3,8 @@ from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from .models import UserProfile, Job, Application, Message, Transaction
+from django.db import models as django_models
+from .models import UserProfile, Job, Application, Message, Transaction, AutocompleteSuggestion
 import json
 from datetime import datetime
 from decimal import Decimal
@@ -843,6 +844,48 @@ def create_job(request):
 				requirements=payload.get('requirements', '')
 			)
 			
+			# Save autocomplete suggestions
+			if job.event_type:
+				suggestion, created = AutocompleteSuggestion.objects.get_or_create(
+					field_type='event_type',
+					value=job.event_type,
+					defaults={'created_by': profile}
+				)
+				if not created:
+					suggestion.usage_count += 1
+					suggestion.save()
+					
+			if job.role:
+				suggestion, created = AutocompleteSuggestion.objects.get_or_create(
+					field_type='role',
+					value=job.role,
+					defaults={'created_by': profile}
+				)
+				if not created:
+					suggestion.usage_count += 1
+					suggestion.save()
+					
+			if job.location:
+				suggestion, created = AutocompleteSuggestion.objects.get_or_create(
+					field_type='location',
+					value=job.location,
+					defaults={'created_by': profile}
+				)
+				if not created:
+					suggestion.usage_count += 1
+					suggestion.save()
+					
+			if job.skills:
+				suggestion, created = AutocompleteSuggestion.objects.get_or_create(
+					field_type='skills',
+					value=job.skills,
+					defaults={'created_by': profile}
+				)
+				if not created:
+					suggestion.usage_count += 1
+					suggestion.save()
+
+			
 			print(f"DEBUG: Job created successfully: {job.id}")
 			return JsonResponse({'message': 'job created', 'job': _job_to_dict(job)})
 		except Exception as e:
@@ -1550,3 +1593,71 @@ def save_profile(request):
 		return JsonResponse({'error': str(e)}, status=400)
 
 
+@csrf_exempt
+def get_autocomplete_suggestions(request):
+	"""Get autocomplete suggestions for a specific field"""
+	if request.method != 'GET':
+		return JsonResponse({'error': 'GET required'}, status=405)
+	
+	field_type = request.GET.get('field_type', '')
+	query = request.GET.get('query', '').strip()
+	
+	if not field_type:
+		return JsonResponse({'error': 'field_type required'}, status=400)
+	
+	try:
+		# Get suggestions filtered by field_type
+		suggestions = AutocompleteSuggestion.objects.filter(field_type=field_type)
+		
+		# If query provided, filter by value containing query
+		if query:
+			suggestions = suggestions.filter(value__icontains=query)
+		
+		# Limit to top 10 suggestions
+		suggestions = suggestions[:10]
+		
+		data = [{'value': s.value, 'usage_count': s.usage_count} for s in suggestions]
+		
+		return JsonResponse({'suggestions': data})
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=400)
+
+
+@csrf_exempt
+def save_autocomplete_suggestion(request):
+	"""Save or update autocomplete suggestion"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=405)
+	
+	try:
+		data = json.loads(request.body)
+		field_type = data.get('field_type', '')
+		value = data.get('value', '').strip()
+		
+		if not field_type or not value:
+			return JsonResponse({'error': 'field_type and value required'}, status=400)
+		
+		# Get user profile if authenticated
+		user_profile = None
+		if request.user.is_authenticated:
+			user_profile = UserProfile.objects.get(user=request.user)
+		
+		# Get or create suggestion
+		suggestion, created = AutocompleteSuggestion.objects.get_or_create(
+			field_type=field_type,
+			value=value,
+			defaults={'created_by': user_profile}
+		)
+		
+		# If already exists, increment usage count
+		if not created:
+			suggestion.usage_count += 1
+			suggestion.save()
+		
+		return JsonResponse({
+			'success': True,
+			'created': created,
+			'usage_count': suggestion.usage_count
+		})
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=400)

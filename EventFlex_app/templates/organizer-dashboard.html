@@ -144,22 +144,28 @@
                             </div>
                             <div class="form-group">
                                 <label>Event Type *</label>
-                                <select name="event_type" required>
-                                    <option value="">Select event type</option>
-                                    <option value="conference">Conference</option>
-                                    <option value="wedding">Wedding</option>
-                                    <option value="corporate">Corporate Event</option>
-                                    <option value="festival">Festival</option>
-                                    <option value="concert">Concert</option>
-                                    <option value="exhibition">Exhibition</option>
-                                </select>
+                                <input type="text" name="event_type" list="event-type-suggestions" placeholder="Select or type event type" required>
+                                <datalist id="event-type-suggestions">
+                                    <option value="Event Staffing">
+                                    <option value="Conference">
+                                    <option value="Wedding">
+                                    <option value="Corporate Event">
+                                    <option value="Festival">
+                                    <option value="Concert">
+                                    <option value="Exhibition">
+                                    <option value="Workshop">
+                                    <option value="Seminar">
+                                </datalist>
                             </div>
                         </div>
 
                         <div class="form-row">
                             <div class="form-group">
                                 <label>Role/Position *</label>
-                                <input type="text" name="role" placeholder="e.g., Registration Desk Staff" required>
+                                <input type="text" name="role" list="role-suggestions" placeholder="e.g., Registration Desk Staff" required>
+                                <datalist id="role-suggestions">
+                                    <!-- Dynamic suggestions will be populated here -->
+                                </datalist>
                             </div>
                             <div class="form-group">
                                 <label>Number of Staff Needed *</label>
@@ -172,7 +178,10 @@
                             <div class="skill-tags">
                                 <span class="skill-tag">Communication <i class="fas fa-times"></i></span>
                                 <span class="skill-tag">Customer Service <i class="fas fa-times"></i></span>
-                                <input type="text" id="skillInput" placeholder="Add skills...">
+                                <input type="text" id="skillInput" list="skill-suggestions" placeholder="Add skills...">
+                                <datalist id="skill-suggestions">
+                                    <!-- Dynamic suggestions will be populated here -->
+                                </datalist>
                             </div>
                         </div>
 
@@ -193,11 +202,17 @@
 
                         <div class="form-group">
                             <label>Location *</label>
-                            <div class="location-input-wrapper">
+                            <div class="location-input-wrapper" style="position: relative;">
                                 <i class="fas fa-map-marker-alt"></i>
-                                <input type="text" name="location" placeholder="Enter city or venue address (e.g., Mumbai, Bangalore Convention Center)" required>
+                                <input type="text" name="location" id="job-location-input" list="location-suggestions" placeholder="Enter city or venue address (e.g., Mumbai, Bangalore Convention Center)" required>
+                                <button type="button" id="get-current-location-btn" class="current-location-btn" title="Use my current location">
+                                    <i class="fas fa-crosshairs"></i> Current Location
+                                </button>
+                                <datalist id="location-suggestions">
+                                    <!-- Dynamic suggestions will be populated here -->
+                                </datalist>
                             </div>
-                            <small class="form-hint">Enter the city or full venue address where the event will take place</small>
+                            <small class="form-hint">Enter the city or full venue address where the event will take place, or use your current location</small>
                         </div>
 
                         <div class="form-row">
@@ -663,6 +678,16 @@
                     </h3>
                     <a id="applicant-portfolio" href="#" target="_blank" style="color: var(--gold); text-decoration: none;">
                         <i class="fas fa-external-link-alt"></i> View Portfolio
+                    </a>
+                </div>
+
+                <!-- Resume/CV Section -->
+                <div class="detail-section" style="margin-bottom: 2rem;" id="resume-section">
+                    <h3 style="font-size: 1.2rem; margin-bottom: 1rem; color: var(--gold); border-bottom: 2px solid var(--gold); padding-bottom: 0.5rem;">
+                        <i class="fas fa-file-pdf"></i> Resume / CV
+                    </h3>
+                    <a id="applicant-resume" href="#" target="_blank" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--gold); text-decoration: none; background: rgba(218, 165, 32, 0.1); padding: 0.75rem 1rem; border-radius: 6px; transition: all 0.3s ease;">
+                        <i class="fas fa-download"></i> <span id="resume-filename">Download Resume</span>
                     </a>
                 </div>
 

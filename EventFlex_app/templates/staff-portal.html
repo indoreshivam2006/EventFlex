@@ -576,62 +576,69 @@
 
     <!-- Job Application Form Modal -->
     <div id="application-modal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
-            <span class="close-modal" onclick="closeApplicationModal()">&times;</span>
-            <h2 style="margin-bottom: 1rem; color: var(--gold);">
-                <i class="fas fa-briefcase"></i> Job Application
-            </h2>
-            <p id="modal-job-title" style="font-size: 1.1rem; margin-bottom: 2rem; color: #ccc;"></p>
+        <div class="modal-content application-form-modal" style="max-width: 700px; max-height: 90vh; overflow-y: auto; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); border-radius: 20px; border: 1px solid var(--gold); box-shadow: 0 20px 60px rgba(0,0,0,0.5);">
+            <span class="close-modal" onclick="closeApplicationModal()" style="color: var(--gold); font-size: 2rem; cursor: pointer;">&times;</span>
             
-            <form id="application-form">
+            <div style="text-align: center; margin-bottom: 2rem; padding-bottom: 1.5rem; border-bottom: 2px solid rgba(218, 165, 32, 0.3);">
+                <i class="fas fa-file-signature" style="font-size: 3rem; color: var(--gold); margin-bottom: 1rem;"></i>
+                <h2 style="margin: 0; color: var(--gold); font-size: 1.8rem; font-weight: 600;">
+                    Job Application
+                </h2>
+                <p id="modal-job-title" style="font-size: 1rem; margin-top: 0.5rem; color: #ccc;"></p>
+            </div>
+            
+            <form id="application-form" class="professional-form">
                 <input type="hidden" id="apply-job-id" name="job_id">
                 
-                <!-- Application Details Section -->
-                <div class="form-section" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 4px solid var(--gold);">
-                    <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.1rem;">
-                        <i class="fas fa-user"></i> Application Details
+                <!-- Personal Information -->
+                <div class="form-section-card">
+                    <h3 class="section-title">
+                        <i class="fas fa-user"></i> Personal Information
                     </h3>
                     
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-row">
                         <div class="form-group">
-                            <label for="apply-full-name">Full Name <span style="color: #ff4444;">*</span></label>
-                            <input type="text" id="apply-full-name" name="full_name" required placeholder="Enter your full name">
+                            <label for="apply-full-name">Full Name <span class="required">*</span></label>
+                            <input type="text" id="apply-full-name" name="full_name" required placeholder="Enter your full name" class="form-input">
                         </div>
                         
                         <div class="form-group">
-                            <label for="apply-email">Email Address <span style="color: #ff4444;">*</span></label>
-                            <input type="email" id="apply-email" name="email" required placeholder="your.email@example.com">
+                            <label for="apply-email">Email Address <span class="required">*</span></label>
+                            <input type="email" id="apply-email" name="email" required placeholder="your.email@example.com" class="form-input">
                         </div>
                     </div>
                     
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-row">
                         <div class="form-group">
-                            <label for="apply-phone">Phone Number <span style="color: #ff4444;">*</span></label>
-                            <input type="tel" id="apply-phone" name="phone" required placeholder="+91 98765 43210">
+                            <label for="apply-phone">Phone Number <span class="required">*</span></label>
+                            <input type="tel" id="apply-phone" name="phone" required placeholder="+91 98765 43210" class="form-input">
                         </div>
                         
                         <div class="form-group">
-                            <label for="apply-city">City <span style="color: #ff4444;">*</span></label>
-                            <input type="text" id="apply-city" name="city" required placeholder="Your city">
+                            <label for="apply-city">City <span class="required">*</span></label>
+                            <input type="text" id="apply-city" name="city" required placeholder="Your city" class="form-input">
                         </div>
                     </div>
                 </div>
 
-                <!-- Professional Information Section -->
-                <div class="form-section" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 4px solid var(--gold);">
-                    <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.1rem;">
-                        <i class="fas fa-briefcase"></i> Professional Information
+                <!-- Professional Details -->
+                <div class="form-section-card">
+                    <h3 class="section-title">
+                        <i class="fas fa-briefcase"></i> Professional Details
                     </h3>
                     
-                    <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-row">
                         <div class="form-group">
-                            <label for="apply-role">Role Applying For <span style="color: #ff4444;">*</span></label>
-                            <input type="text" id="apply-role" name="role" required placeholder="e.g., Photographer, Videographer">
+                            <label for="apply-role">Role Applying For <span class="required">*</span></label>
+                            <input type="text" id="apply-role" name="role" list="apply-role-suggestions" required placeholder="e.g., Photographer, Videographer" class="form-input">
+                            <datalist id="apply-role-suggestions">
+                                <!-- Dynamic suggestions will be populated here -->
+                            </datalist>
                         </div>
                         
                         <div class="form-group">
-                            <label for="apply-experience">Years of Experience <span style="color: #ff4444;">*</span></label>
-                            <select id="apply-experience" name="experience_years" required style="padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                            <label for="apply-experience">Years of Experience <span class="required">*</span></label>
+                            <select id="apply-experience" name="experience_years" required class="form-input">
                                 <option value="">Select experience</option>
                                 <option value="0-1">0-1 years</option>
                                 <option value="1-3">1-3 years</option>
@@ -643,117 +650,92 @@
                     </div>
                     
                     <div class="form-group">
+                        <label for="apply-skills">Relevant Skills <span class="required">*</span></label>
+                        <textarea id="apply-skills" name="relevant_skills" list="apply-skills-suggestions" required rows="3" placeholder="List your key skills (e.g., Photography, Videography, Event Coordination...)" class="form-input"></textarea>
+                        <datalist id="apply-skills-suggestions">
+                            <!-- Dynamic suggestions will be populated here -->
+                        </datalist>
+                    </div>
+                    
+                    <div class="form-group">
                         <label for="apply-portfolio">Portfolio/Website Link</label>
-                        <input type="url" id="apply-portfolio" name="portfolio_link" placeholder="https://yourportfolio.com">
+                        <input type="url" id="apply-portfolio" name="portfolio_link" placeholder="https://yourportfolio.com" class="form-input">
                     </div>
                 </div>
 
-                <!-- Skills & Expertise Section -->
-                <div class="form-section" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 4px solid var(--gold);">
-                    <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.1rem;">
-                        <i class="fas fa-star"></i> Skills & Expertise
+                <!-- Availability & Experience -->
+                <div class="form-section-card">
+                    <h3 class="section-title">
+                        <i class="fas fa-calendar-check"></i> Availability & Experience
                     </h3>
                     
                     <div class="form-group">
-                        <label for="apply-skills">Relevant Skills <span style="color: #ff4444;">*</span></label>
-                        <textarea id="apply-skills" name="relevant_skills" required rows="3" placeholder="List your key skills relevant to this role (e.g., Photography, Videography, Lighting, Audio Equipment, Event Coordination...)"></textarea>
-                        <small style="display: block; margin-top: 0.5rem; color: #999;">Separate multiple skills with commas</small>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="apply-certifications">Certifications or Qualifications</label>
-                        <textarea id="apply-certifications" name="certifications" rows="2" placeholder="Any relevant certifications, licenses, or qualifications"></textarea>
-                    </div>
-                </div>
-
-                <!-- Availability Section -->
-                <div class="form-section" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 4px solid var(--gold);">
-                    <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.1rem;">
-                        <i class="fas fa-calendar-check"></i> Availability
-                    </h3>
-                    
-                    <div class="form-group">
-                        <label for="apply-availability">When are you available? <span style="color: #ff4444;">*</span></label>
-                        <select id="apply-availability" name="availability" required style="padding: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; color: white;">
+                        <label for="apply-availability">When are you available? <span class="required">*</span></label>
+                        <select id="apply-availability" name="availability" required class="form-input">
                             <option value="">Select availability</option>
-                            <option value="full-time">Full-time (40+ hours/week)</option>
-                            <option value="part-time">Part-time (20-40 hours/week)</option>
-                            <option value="weekends">Weekends only</option>
-                            <option value="flexible">Flexible/Project-based</option>
-                            <option value="immediate">Immediate availability</option>
+                            <option value="Immediate">Immediate availability</option>
+                            <option value="Within 1 week">Within 1 week</option>
+                            <option value="Within 2 weeks">Within 2 weeks</option>
+                            <option value="Flexible">Flexible/Project-based</option>
+                            <option value="Weekends only">Weekends only</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
-                        <label for="apply-notice-period">Notice Period</label>
-                        <input type="text" id="apply-notice-period" name="notice_period" placeholder="e.g., Immediate, 1 week, 2 weeks">
+                        <label for="apply-previous-events">Previous Event Experience <span class="required">*</span></label>
+                        <textarea id="apply-previous-events" name="previous_events" list="apply-previous-events-suggestions" required rows="4" placeholder="Describe 2-3 relevant events you've worked on. Include event type, your role, and key achievements." class="form-input"></textarea>
+                        <datalist id="apply-previous-events-suggestions">
+                            <!-- Dynamic suggestions will be populated here -->
+                        </datalist>
                     </div>
                 </div>
 
-                <!-- Previous Events & Experience Section -->
-                <div class="form-section" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 4px solid var(--gold);">
-                    <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.1rem;">
-                        <i class="fas fa-history"></i> Previous Events & Experience
+                <!-- Why Apply & Compensation -->
+                <div class="form-section-card">
+                    <h3 class="section-title">
+                        <i class="fas fa-comment-dots"></i> Application Statement
                     </h3>
                     
                     <div class="form-group">
-                        <label for="apply-previous-events">Previous Events Worked <span style="color: #ff4444;">*</span></label>
-                        <textarea id="apply-previous-events" name="previous_events" required rows="4" placeholder="Describe 2-3 relevant events you've worked on. Include event type, your role, and key achievements.&#10;&#10;Example:&#10;- Tech Conference 2024 - Lead Photographer - Captured 500+ professional photos&#10;- Wedding Reception - Videographer - Created 10-minute highlight reel"></textarea>
+                        <label for="apply-why-interested">Why are you interested in this position? <span class="required">*</span></label>
+                        <textarea id="apply-why-interested" name="why_interested" required rows="4" placeholder="Tell us what excites you about this opportunity and why you're a great fit..." class="form-input"></textarea>
                     </div>
                     
                     <div class="form-group">
-                        <label for="apply-references">Professional References</label>
-                        <textarea id="apply-references" name="references" rows="2" placeholder="Names and contact info of professional references (optional)"></textarea>
-                    </div>
-                </div>
-
-                <!-- Why Interested Section -->
-                <div class="form-section" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 4px solid var(--gold);">
-                    <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.1rem;">
-                        <i class="fas fa-question-circle"></i> Why Interested?
-                    </h3>
-                    
-                    <div class="form-group">
-                        <label for="apply-why-interested">Why are you interested in this position? <span style="color: #ff4444;">*</span></label>
-                        <textarea id="apply-why-interested" name="why_interested" required rows="4" placeholder="Tell us what excites you about this opportunity and why you're a great fit..."></textarea>
+                        <label for="apply-cover-message">Cover Message <span class="required">*</span></label>
+                        <textarea id="apply-cover-message" name="cover_message" required rows="4" placeholder="Write a brief message to the organizer. Highlight your unique value and enthusiasm..." class="form-input"></textarea>
                     </div>
                     
                     <div class="form-group">
                         <label for="apply-expected-compensation">Expected Compensation</label>
-                        <input type="text" id="apply-expected-compensation" name="expected_compensation" placeholder="e.g., ₹2000/day or ₹500/hour">
+                        <input type="text" id="apply-expected-compensation" name="expected_compensation" placeholder="e.g., ₹2000/day or Negotiable" class="form-input">
                     </div>
                 </div>
 
-                <!-- Cover Message Section -->
-                <div class="form-section" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 4px solid var(--gold);">
-                    <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.1rem;">
-                        <i class="fas fa-envelope"></i> Cover Message
+                <!-- Resume Upload -->
+                <div class="form-section-card">
+                    <h3 class="section-title">
+                        <i class="fas fa-file-upload"></i> Resume/CV Upload
                     </h3>
                     
                     <div class="form-group">
-                        <label for="apply-cover-message">Cover Message <span style="color: #ff4444;">*</span></label>
-                        <textarea id="apply-cover-message" name="cover_message" required rows="5" placeholder="Write a brief cover message to the organizer. Highlight your unique value proposition and enthusiasm for this role..."></textarea>
-                    </div>
-                </div>
-
-                <!-- Resume Upload Section -->
-                <div class="form-section" style="margin-bottom: 2rem; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 12px; border-left: 4px solid var(--gold);">
-                    <h3 style="color: var(--gold); margin-bottom: 1rem; font-size: 1.1rem;">
-                        <i class="fas fa-file-upload"></i> Resume Upload
-                    </h3>
-                    
-                    <div class="form-group">
-                        <label for="apply-cv">Upload Resume/CV <span style="color: #ff4444;">*</span></label>
-                        <input type="file" id="apply-cv" name="cv" accept=".pdf,.doc,.docx" required style="padding: 0.75rem; background: rgba(255,255,255,0.05); border: 2px dashed var(--gold); border-radius: 8px; cursor: pointer;">
-                        <small style="display: block; margin-top: 0.5rem; color: #999;">Accepted formats: PDF, DOC, DOCX (Max 5MB) - Required</small>
+                        <label for="apply-cv">Upload Resume/CV <span class="required">*</span></label>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="apply-cv" name="cv" accept=".pdf,.doc,.docx" required class="file-input">
+                            <div class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <span>Click to upload or drag and drop</span>
+                                <small>PDF, DOC, DOCX (Max 5MB) - Required</small>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <div class="modal-actions" style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: space-between; padding-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.1);">
-                    <button type="button" class="btn-outline" onclick="closeApplicationModal()">
+                    <button type="button" class="btn-outline" onclick="closeApplicationModal()" style="flex: 1;">
                         <i class="fas fa-times"></i> Cancel
                     </button>
-                    <button type="submit" class="btn-primary" style="padding: 0.75rem 2rem;">
+                    <button type="submit" class="btn-primary" style="flex: 2; background: linear-gradient(135deg, #daa520 0%, #b8860b 100%); padding: 1rem 2rem; font-size: 1.1rem;">
                         <i class="fas fa-paper-plane"></i> Submit Application
                     </button>
                 </div>

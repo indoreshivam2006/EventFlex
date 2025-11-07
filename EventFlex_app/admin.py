@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile, Job, Application, Transaction, Message
+from .models import UserProfile, Job, Application, Transaction, Message, AutocompleteSuggestion
 
 # Register your models here.
 
@@ -34,3 +34,10 @@ class TransactionAdmin(admin.ModelAdmin):
 class MessageAdmin(admin.ModelAdmin):
 	list_display = ('sender', 'recipient', 'created_at')
 	search_fields = ('sender__user__username', 'recipient__user__username')
+
+
+@admin.register(AutocompleteSuggestion)
+class AutocompleteSuggestionAdmin(admin.ModelAdmin):
+	list_display = ('field_type', 'value', 'usage_count', 'created_at')
+	search_fields = ('value',)
+	list_filter = ('field_type',)
