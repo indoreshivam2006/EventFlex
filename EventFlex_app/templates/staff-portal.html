@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Pro Portal - EventFlex</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.7">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -129,36 +129,31 @@
                     <h2>Your Reputation</h2>
                     <div class="reputation-content">
                         <div class="reputation-badge">
-                            <div class="badge-display elite">
-                                <i class="fas fa-crown"></i>
-                                <span>Elite Pro</span>
+                            <div id="badge-display" class="badge-display rising-star">
+                                <i class="fas fa-star"></i>
+                                <span id="badge-text">Rising Star</span>
                             </div>
-                            <p>You're in the top 5% of Event Pros!</p>
+                            <p id="badge-description">Keep building your reputation!</p>
                         </div>
                         <div class="reputation-stats">
                             <div class="rep-stat">
-                                <h3>4.9/5.0</h3>
+                                <h3 id="avg-rating">0.0/5.0</h3>
                                 <p>Average Rating</p>
-                                <div class="stars">★★★★★</div>
+                                <div id="rating-stars" class="stars">☆☆☆☆☆</div>
                             </div>
                             <div class="rep-stat">
-                                <h3>24</h3>
+                                <h3 id="total-reviews">0</h3>
                                 <p>Total Reviews</p>
                             </div>
                             <div class="rep-stat">
-                                <h3>98%</h3>
-                                <p>Attendance Rate</p>
+                                <h3 id="total-events">0</h3>
+                                <p>Events Completed</p>
                             </div>
                         </div>
                         <div class="recent-reviews">
                             <h3>Recent Reviews</h3>
-                            <div class="review-item">
-                                <div class="review-header">
-                                    <span class="stars">★★★★★</span>
-                                    <span class="date">2 days ago</span>
-                                </div>
-                                <p>"Priya was exceptional! Professional, punctual, and went above and beyond."</p>
-                                <span class="reviewer">- TechEvents India</span>
+                            <div id="recent-reviews-list">
+                                <p class="empty-state">No reviews yet. Complete events to receive reviews!</p>
                             </div>
                         </div>
                     </div>
@@ -501,7 +496,8 @@
                                     <h4>Police Verification</h4>
                                     <p>Optional - Increases trust</p>
                                 </div>
-                                <button class="btn-outline btn-sm">Start Verification</button>
+                                <button class="btn-outline btn-sm" onclick="showVerificationModal()">Start
+                                    Verification</button>
                             </div>
                         </div>
 
@@ -686,6 +682,21 @@
                                 class="form-input">
                         </div>
                     </div>
+
+                    <div class="form-group">
+                        <label for="apply-badge">Your Badge</label>
+                        <div id="apply-badge-display" class="badge-display-inline"
+                            style="padding: 1rem; background: rgba(218, 165, 32, 0.1); border-radius: 8px; text-align: center;">
+                            <i class="fas fa-star" style="color: var(--gold); font-size: 1.5rem;"></i>
+                            <span id="apply-badge-text"
+                                style="color: var(--gold); font-weight: 600; font-size: 1.1rem; margin-left: 0.5rem;">Rising
+                                Star</span>
+                            <p style="margin-top: 0.5rem; color: var(--text-secondary); font-size: 0.9rem;">
+                                <span id="apply-badge-rating">0.0</span> ⭐ |
+                                <span id="apply-badge-reviews">0</span> reviews
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Professional Details -->
@@ -828,9 +839,221 @@
         </div>
     </div>
 
+    <!-- Verification Modal -->
+    <div id="verification-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <span class="close-modal" onclick="closeVerificationModal()">&times;</span>
+            <h2><i class="fas fa-shield-alt"></i> KYC Verification</h2>
+            <p style="color: #999; margin-bottom: 2rem;">Complete your verification to get access to more jobs and build
+                trust with organizers.</p>
+
+            <form id="verification-form" onsubmit="handleVerificationSubmit(event)">
+                <!-- Personal Information -->
+                <div class="form-section-card">
+                    <h3 class="section-title"><i class="fas fa-user"></i> Personal Information</h3>
+
+                    <div class="form-group">
+                        <label for="verify-full-name">Full Name (As per ID) <span class="required">*</span></label>
+                        <input type="text" id="verify-full-name" name="full_name" required class="form-input"
+                            placeholder="Enter your full legal name">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="verify-dob">Date of Birth <span class="required">*</span></label>
+                            <input type="date" id="verify-dob" name="date_of_birth" required class="form-input">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="verify-gender">Gender <span class="required">*</span></label>
+                            <select id="verify-gender" name="gender" required class="form-input">
+                                <option value="">Select gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="verify-address">Complete Address <span class="required">*</span></label>
+                        <textarea id="verify-address" name="address" required rows="3" class="form-input"
+                            placeholder="House/Flat No., Street, Area, City, State, PIN Code"></textarea>
+                    </div>
+                </div>
+
+                <!-- Document Information -->
+                <div class="form-section-card">
+                    <h3 class="section-title"><i class="fas fa-id-card"></i> Identity Document</h3>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="verify-doc-type">Document Type <span class="required">*</span></label>
+                            <select id="verify-doc-type" name="document_type" required class="form-input">
+                                <option value="">Select document type</option>
+                                <option value="aadhar">Aadhar Card</option>
+                                <option value="pan">PAN Card</option>
+                                <option value="voter_id">Voter ID</option>
+                                <option value="driving_license">Driving License</option>
+                                <option value="passport">Passport</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="verify-doc-number">Document Number <span class="required">*</span></label>
+                            <input type="text" id="verify-doc-number" name="document_number" required class="form-input"
+                                placeholder="Enter document number">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Document Photos <span class="required">*</span></label>
+                        <p style="color: #999; font-size: 0.9rem; margin-bottom: 1rem;">Upload clear photos of your
+                            document (front and back if applicable)</p>
+                        <div class="file-upload-wrapper" style="margin-bottom: 1rem;">
+                            <input type="file" id="verify-doc-front" name="document_front" accept="image/*"
+                                class="file-input">
+                            <div class="file-upload-label">
+                                <i class="fas fa-camera"></i>
+                                <span>Front Side of Document</span>
+                            </div>
+                        </div>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="verify-doc-back" name="document_back" accept="image/*"
+                                class="file-input">
+                            <div class="file-upload-label">
+                                <i class="fas fa-camera"></i>
+                                <span>Back Side of Document (if applicable)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Selfie with Document <span class="required">*</span></label>
+                        <p style="color: #999; font-size: 0.9rem; margin-bottom: 1rem;">Take a clear selfie holding your
+                            ID document next to your face</p>
+                        <div class="file-upload-wrapper">
+                            <input type="file" id="verify-selfie" name="selfie_photo" accept="image/*"
+                                class="file-input">
+                            <div class="file-upload-label">
+                                <i class="fas fa-camera"></i>
+                                <span>Upload Selfie with Document</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Contact -->
+                <div class="form-section-card">
+                    <h3 class="section-title"><i class="fas fa-phone-alt"></i> Emergency Contact</h3>
+
+                    <div class="form-group">
+                        <label for="verify-emergency-name">Emergency Contact Name</label>
+                        <input type="text" id="verify-emergency-name" name="emergency_contact_name" class="form-input"
+                            placeholder="Name of emergency contact person">
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="verify-emergency-phone">Emergency Contact Phone</label>
+                            <input type="tel" id="verify-emergency-phone" name="emergency_contact_phone"
+                                class="form-input" placeholder="+91 98765 43210">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="verify-emergency-relation">Relationship</label>
+                            <input type="text" id="verify-emergency-relation" name="emergency_contact_relation"
+                                class="form-input" placeholder="e.g., Parent, Spouse, Sibling">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Professional Details -->
+                <div class="form-section-card">
+                    <h3 class="section-title"><i class="fas fa-briefcase"></i> Professional Information</h3>
+
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="verify-experience">Years of Experience</label>
+                            <select id="verify-experience" name="years_of_experience" class="form-input">
+                                <option value="">Select experience</option>
+                                <option value="0-1">0-1 years</option>
+                                <option value="1-3">1-3 years</option>
+                                <option value="3-5">3-5 years</option>
+                                <option value="5-10">5-10 years</option>
+                                <option value="10+">10+ years</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="verify-specialization">Specialization/Role</label>
+                            <input type="text" id="verify-specialization" name="specialization" class="form-input"
+                                placeholder="e.g., Event Coordinator, Photographer">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="verify-previous-companies">Previous Companies/Events</label>
+                        <textarea id="verify-previous-companies" name="previous_companies" rows="3" class="form-input"
+                            placeholder="List previous companies or major events you've worked with"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="verify-certifications">Certifications</label>
+                        <textarea id="verify-certifications" name="certifications" rows="2" class="form-input"
+                            placeholder="Any relevant certifications or training"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-actions"
+                    style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: space-between;">
+                    <button type="button" class="btn-outline" onclick="closeVerificationModal()" style="flex: 1;">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn-primary"
+                        style="flex: 2; background: linear-gradient(135deg, #daa520 0%, #b8860b 100%);">
+                        <i class="fas fa-check-circle"></i> Submit Verification
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chat Modal (OLX-style) -->
+    <div id="chat-modal" class="chat-modal" style="display: none;">
+        <div class="chat-container">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <img id="chat-partner-avatar" src="" alt="User" class="chat-avatar">
+                    <div>
+                        <h3 id="chat-partner-name">User</h3>
+                        <p id="chat-partner-status" class="chat-status">Online</p>
+                    </div>
+                </div>
+                <button class="chat-close-btn" onclick="closeChatModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chat-messages" class="chat-messages">
+                <!-- Messages will be loaded here -->
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input-container">
+                <form id="chat-form" onsubmit="sendChatMessage(event)">
+                    <input type="hidden" id="chat-partner-id" value="">
+                    <textarea id="chat-message-input" placeholder="Type a message..." rows="1"
+                        onkeydown="handleChatKeyPress(event)"></textarea>
+                    <button type="submit" class="chat-send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- QR Code Library -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/script.js' %}?v=1.7"></script>
 </body>
 
 </html>

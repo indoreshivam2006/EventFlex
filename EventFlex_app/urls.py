@@ -55,6 +55,15 @@ urlpatterns = [
     path('autocomplete/suggestions/', views.get_autocomplete_suggestions, name='get_autocomplete_suggestions'),
     path('autocomplete/save/', views.save_autocomplete_suggestion, name='save_autocomplete_suggestion'),
     
+    # Verification endpoints
+    path('verification/submit/', views.submit_verification, name='submit_verification'),
+    path('verification/status/', views.get_verification_status, name='get_verification_status'),
+    
+    # Review endpoints
+    path('reviews/submit/<int:job_id>/', views.submit_review, name='submit_review'),
+    path('reviews/staff/<int:staff_id>/', views.get_reviews, name='get_reviews'),
+    path('reviews/job/<int:job_id>/staff/', views.get_staff_to_review, name='get_staff_to_review'),
+    
     # Footer pages
     path('pricing/', views.pricing_page, name='pricing_page'),
     path('success-stories/', views.success_stories_page, name='success_stories_page'),

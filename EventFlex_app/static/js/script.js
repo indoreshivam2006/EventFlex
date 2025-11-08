@@ -1,3 +1,4 @@
+// Rate Staff Button Update - v1.5
 (function () {
     'use strict';
 
@@ -262,15 +263,226 @@
 
             if (completedEl) completedEl.textContent = completedEvents;
             if (earnedEl) earnedEl.textContent = `₹${totalEarned.toLocaleString()}`;
-            if (ratingEl) ratingEl.textContent = '5.0'; // Placeholder
+            if (ratingEl && currentUser) ratingEl.textContent = currentUser.average_rating || '0.0';
             if (upcomingEl) upcomingEl.textContent = upcoming;
+
+            // Load reputation data
+            await loadReputationData();
 
         } catch (err) {
             console.error('Failed to load staff dashboard stats:', err);
         }
     }
 
-    async function loadStaffUpcomingEvents() {
+    async function loadReputationData() {
+        try {
+            if (!currentUser || !currentUser.id) return;
+
+            console.log('Loading reputation data for user ID:', currentUser.id);
+
+            // Fetch reviews for current user (this also returns updated profile data)
+            const res = await fetch(`${API_BASE}/reviews/staff/${currentUser.id}/`, {
+                credentials: 'include'
+            });
+
+            if (!res.ok) {
+                console.error('Failed to fetch reviews:', res.status);
+                return;
+            }
+
+            const data = await res.json();
+            console.log('Reviews API response:', data);
+
+            const reviews = data.reviews || [];
+            const staffProfile = data.staff || {};
+
+            console.log('Staff profile data:', staffProfile);
+            console.log('Badge:', staffProfile.badge);
+            console.log('Average rating:', staffProfile.average_rating);
+            console.log('Total reviews:', staffProfile.total_reviews);
+            console.log('Events completed:', staffProfile.total_events_completed);
+
+            // Update currentUser with fresh reputation data from the staff profile
+            if (staffProfile) {
+                currentUser.badge = staffProfile.badge;
+                currentUser.average_rating = staffProfile.average_rating;
+                currentUser.total_reviews = staffProfile.total_reviews;
+                currentUser.total_events_completed = staffProfile.total_events_completed;
+                // Save updated user to localStorage
+                saveCurrentUser(currentUser);
+            }
+
+            // Update badge display
+            updateBadgeDisplay(currentUser.badge, currentUser.average_rating);
+
+            // Update stats
+            const avgRatingEl = document.getElementById('avg-rating');
+            const totalReviewsEl = document.getElementById('total-reviews');
+            const totalEventsEl = document.getElementById('total-events');
+            const ratingStarsEl = document.getElementById('rating-stars');
+
+            if (avgRatingEl) {
+                const rating = parseFloat(currentUser.average_rating || 0);
+                avgRatingEl.textContent = `${rating.toFixed(1)}/5.0`;
+                console.log('Updated avg rating display to:', rating.toFixed(1));
+            }
+
+            if (totalReviewsEl) {
+                totalReviewsEl.textContent = currentUser.total_reviews || 0;
+                console.log('Updated total reviews display to:', currentUser.total_reviews);
+            }
+
+            if (totalEventsEl) {
+                totalEventsEl.textContent = currentUser.total_events_completed || 0;
+                console.log('Updated total events display to:', currentUser.total_events_completed);
+            }
+
+            if (ratingStarsEl) {
+                const rating = parseFloat(currentUser.average_rating || 0);
+                ratingStarsEl.innerHTML = generateStars(rating);
+            }
+
+            // Render recent reviews
+            renderRecentReviews(reviews.slice(0, 3));
+
+        } catch (err) {
+            console.error('Failed to load reputation data:', err);
+        }
+    }
+
+    function updateBadgeDisplay(badge, rating) {
+        const badgeDisplay = document.getElementById('badge-display');
+        const badgeText = document.getElementById('badge-text');
+        const badgeDescription = document.getElementById('badge-description');
+
+        if (!badgeDisplay || !badgeText || !badgeDescription) return;
+
+        // Remove all badge classes
+        badgeDisplay.classList.remove('rising-star', 'pro', 'elite');
+
+        // Badge configuration
+        const badgeConfig = {
+            'rising_star': {
+                class: 'rising-star',
+                icon: 'fa-star',
+                text: 'Rising Star',
+                description: 'Keep building your reputation!'
+            },
+            'pro': {
+                class: 'pro',
+                icon: 'fa-award',
+                text: 'Pro',
+                description: 'You\'re a trusted professional!'
+            },
+            'elite': {
+                class: 'elite',
+                icon: 'fa-crown',
+                text: 'Elite',
+                description: 'You\'re in the top tier of Event Pros!'
+            }
+        };
+
+        const config = badgeConfig[badge] || badgeConfig['rising_star'];
+
+        badgeDisplay.classList.add(config.class);
+        badgeDisplay.querySelector('i').className = `fas ${config.icon}`;
+        badgeText.textContent = config.text;
+        badgeDescription.textContent = config.description;
+    }
+
+    function generateStars(rating) {
+        const fullStars = Math.floor(rating);
+        const hasHalfStar = rating % 1 >= 0.5;
+        const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
+
+        let stars = '';
+        for (let i = 0; i < fullStars; i++) stars += '★';
+        if (hasHalfStar) stars += '⯨';
+        for (let i = 0; i < emptyStars; i++) stars += '☆';
+
+        return stars;
+    }
+
+    function renderRecentReviews(reviews) {
+        const container = document.getElementById('recent-reviews-list');
+        if (!container) return;
+
+        if (reviews.length === 0) {
+            container.innerHTML = '<p class="empty-state">No reviews yet. Complete events to receive reviews!</p>';
+            return;
+        }
+
+        container.innerHTML = reviews.map(review => `
+            <div class="review-item">
+                <div class="review-header">
+                    <span class="stars">${generateStars(parseFloat(review.rating))}</span>
+                    <span class="date">${formatRelativeTime(review.created_at)}</span>
+                </div>
+                <p>"${escapeHtml(review.review_text || 'No comment provided')}"</p>
+                <span class="reviewer">- ${escapeHtml(review.organizer_name)}</span>
+                <div class="review-details" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.5rem;">
+                    <span>Professionalism: ${review.professionalism}/5</span> | 
+                    <span>Punctuality: ${review.punctuality}/5</span> | 
+                    <span>Quality: ${review.quality_of_work}/5</span> | 
+                    <span>Communication: ${review.communication}/5</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function formatRelativeTime(dateStr) {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffMs = now - date;
+        const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return '1 day ago';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+        if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+        return `${Math.floor(diffDays / 365)} years ago`;
+    }
+
+    function updateApplicationBadge(badge, rating, totalReviews) {
+        const badgeTextEl = document.getElementById('apply-badge-text');
+        const badgeRatingEl = document.getElementById('apply-badge-rating');
+        const badgeReviewsEl = document.getElementById('apply-badge-reviews');
+        const badgeIcon = document.querySelector('#apply-badge-display i');
+
+        if (!badgeTextEl || !badgeRatingEl || !badgeReviewsEl) return;
+
+        // Badge configuration
+        const badgeConfig = {
+            'rising_star': {
+                icon: 'fa-star',
+                text: 'Rising Star',
+                color: '#f59e0b'
+            },
+            'pro': {
+                icon: 'fa-award',
+                text: 'Pro',
+                color: '#3b82f6'
+            },
+            'elite': {
+                icon: 'fa-crown',
+                text: 'Elite',
+                color: '#DAA520'
+            }
+        };
+
+        const config = badgeConfig[badge] || badgeConfig['rising_star'];
+
+        if (badgeIcon) {
+            badgeIcon.className = `fas ${config.icon}`;
+            badgeIcon.style.color = config.color;
+        }
+
+        badgeTextEl.textContent = config.text;
+        badgeTextEl.style.color = config.color;
+        badgeRatingEl.textContent = parseFloat(rating || 0).toFixed(1);
+        badgeReviewsEl.textContent = totalReviews || 0;
+    } async function loadStaffUpcomingEvents() {
         try {
             const res = await fetch(`${API_BASE}/applications/`, {
                 credentials: 'include'
@@ -795,8 +1007,15 @@
                         <p><i class="fas fa-rupee-sign"></i> ₹${talent.expected_pay || 2000}/day</p>
                     </div>
                     <div class="talent-actions">
-                        <button class="btn-outline view-profile-btn" data-profile-id="${talent.id}">View Profile</button>
-                        <button class="btn-primary hire-talent-btn" data-talent-id="${talent.id}" data-talent-name="${escapeHtml(fullName)}">Hire Now</button>
+                        <button class="btn-outline view-profile-btn" data-profile-id="${talent.id}">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                        <button class="btn-success" onclick="openChatModal(${talent.user_id || talent.id}, '${escapeHtml(fullName)}', 'https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=6366f1&color=fff')">
+                            <i class="fas fa-comment"></i> Message
+                        </button>
+                        <button class="btn-primary hire-talent-btn" data-talent-id="${talent.id}" data-talent-name="${escapeHtml(fullName)}">
+                            <i class="fas fa-user-plus"></i> Hire
+                        </button>
                     </div>
                 </div>
             `;
@@ -991,15 +1210,19 @@
     }
 
     function renderStaffBookings(applications) {
-        const now = new Date();
-        const upcoming = applications.filter(app => {
-            const jobDate = new Date(app.job.date);
-            return jobDate >= now;
-        });
-        const completed = applications.filter(app => {
-            const jobDate = new Date(app.job.date);
-            return jobDate < now;
-        });
+        console.log('Total accepted applications:', applications.length);
+
+        // Filter by job status instead of date
+        const upcoming = applications.filter(app => app.job.status === 'active');
+        const completed = applications.filter(app => app.job.status === 'completed');
+
+        console.log('Upcoming bookings (active):', upcoming.length);
+        console.log('Completed bookings:', completed.length);
+
+        // Debug: log a sample application if available
+        if (applications.length > 0) {
+            console.log('Sample application:', applications[0]);
+        }
 
         document.getElementById('upcoming-bookings-count').textContent = `(${upcoming.length})`;
         document.getElementById('completed-bookings-count').textContent = `(${completed.length})`;
@@ -1767,7 +1990,7 @@
             const isActive = currentChatPartner && currentChatPartner.id === partner.id;
 
             return `
-                <div class="conversation-item ${isActive ? 'active' : ''}" onclick="openChat(${partner.id}, '${escapeHtml(partner.username)}', '${avatarUrl}')" data-partner-id="${partner.id}">
+                <div class="conversation-item ${isActive ? 'active' : ''}" onclick="openChatModal(${partner.id}, '${escapeHtml(partner.username)}', '${avatarUrl}')" data-partner-id="${partner.id}">
                     <img src="${avatarUrl}" alt="${escapeHtml(partner.username)}">
                     <div class="conversation-info">
                         <h4>${escapeHtml(partner.username)}</h4>
@@ -2821,6 +3044,7 @@
             username: (formData.get('username') || '').toString().trim(),
             email: (formData.get('email') || '').toString().trim(),
             password: (formData.get('password') || '').toString(),
+            phone: (formData.get('phone') || '').toString().trim(),
             user_type: form.dataset.userType || 'staff',
             city: (formData.get('city') || '').toString(),
         };
@@ -2838,6 +3062,7 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
+                credentials: 'include'
             });
 
             const data = await res.json();
@@ -2848,10 +3073,20 @@
                 return;
             }
 
-            showToast('Account created successfully! Please log in.', 'success');
+            // Save user profile data to localStorage
+            if (data.profile) {
+                saveCurrentUser(data.profile);
+            }
 
+            showToast('Account created successfully! Redirecting...', 'success');
+
+            // Redirect to appropriate dashboard based on user type
             setTimeout(() => {
-                window.location.href = '/login/';
+                if (payload.user_type === 'organizer') {
+                    window.location.href = '/organizer-dashboard/';
+                } else {
+                    window.location.href = '/staff-portal/';
+                }
             }, 1500);
         } catch (err) {
             showToast('Network error during registration', 'error');
@@ -2986,6 +3221,9 @@
             if (cityInput && currentUser.city) {
                 cityInput.value = currentUser.city;
             }
+
+            // Update badge display in application form
+            updateApplicationBadge(currentUser.badge, currentUser.average_rating, currentUser.total_reviews);
         }
 
         if (roleInput && jobRole) {
@@ -3879,6 +4117,323 @@
         showToast('Invoice generated successfully! You can now print or save as PDF.', 'success');
     }
 
+    window.downloadOrganizerInvoice = async function (jobId) {
+        try {
+            // Check if user is logged in
+            if (!currentUser) {
+                showToast('Please log in to download invoice', 'error');
+                return;
+            }
+
+            // Fetch job details
+            const response = await fetch(`${API_BASE}/jobs/${jobId}/details/`, {
+                credentials: 'include'
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch job details');
+            }
+
+            const job = await response.json();
+
+            // Generate organizer invoice HTML
+            generateOrganizerInvoiceHTML(job, currentUser);
+
+        } catch (error) {
+            console.error('Error generating organizer invoice:', error);
+            showToast('Failed to generate invoice', 'error');
+        }
+    };
+
+    function generateOrganizerInvoiceHTML(job, user) {
+        const invoiceNumber = `INV-ORG-${String(job.id).padStart(6, '0')}`;
+        const invoiceDate = new Date().toLocaleDateString('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        const eventDate = new Date(job.date).toLocaleDateString('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Calculate total payment to staff
+        const hiredStaff = job.hired_staff || [];
+        const totalStaffPayment = hiredStaff.length * parseFloat(job.pay_rate);
+        const platformFee = 0; // No platform fee for demo
+        const tax = 0; // No tax for demo
+        const grandTotal = totalStaffPayment + platformFee + tax;
+
+        // Create invoice HTML
+        const invoiceHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice ${invoiceNumber}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 40px;
+            background: #f5f5f5;
+        }
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            border-bottom: 3px solid #DAA520;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #DAA520;
+        }
+        .invoice-title {
+            text-align: right;
+        }
+        .invoice-title h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .invoice-title .invoice-number {
+            color: #666;
+            font-size: 14px;
+        }
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+        .info-box {
+            flex: 1;
+        }
+        .info-box h3 {
+            color: #DAA520;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        .info-box p {
+            color: #333;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .info-box p strong {
+            display: inline-block;
+            width: 80px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .items-table th {
+            background: #DAA520;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+        .items-table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #333;
+            font-size: 14px;
+        }
+        .items-table tr:last-child td {
+            border-bottom: 2px solid #DAA520;
+        }
+        .totals {
+            margin-left: auto;
+            width: 300px;
+        }
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        .total-row.grand-total {
+            border-top: 2px solid #DAA520;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #DAA520;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+            text-align: center;
+            color: #666;
+            font-size: 12px;
+        }
+        .payment-status {
+            display: inline-block;
+            padding: 6px 15px;
+            background: #ef4444;
+            color: white;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .notes {
+            background: #f9f9f9;
+            padding: 20px;
+            border-left: 4px solid #DAA520;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #666;
+        }
+        @media print {
+            body { padding: 0; background: white; }
+            .no-print { display: none; }
+        }
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            background: #DAA520;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 2px 10px rgba(218, 165, 32, 0.3);
+        }
+        .print-button:hover {
+            background: #c79400;
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button no-print" onclick="window.print()">
+        🖨️ Print / Download PDF
+    </button>
+    
+    <div class="invoice-container">
+        <div class="header">
+            <div class="logo">
+                ✨ EventFlex
+            </div>
+            <div class="invoice-title">
+                <h1>PAYMENT INVOICE</h1>
+                <p class="invoice-number">${invoiceNumber}</p>
+                <p class="invoice-number">Date: ${invoiceDate}</p>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <div class="info-box">
+                <h3>Billed From</h3>
+                <p><strong>Company:</strong> ${escapeHtml(user.username)}</p>
+                <p><strong>Email:</strong> ${escapeHtml(user.email || 'N/A')}</p>
+                <p><strong>Phone:</strong> ${escapeHtml(user.phone || 'N/A')}</p>
+                <p><strong>City:</strong> ${escapeHtml(user.city || 'N/A')}</p>
+            </div>
+            <div class="info-box">
+                <h3>Payment Summary</h3>
+                <p><strong>Event ID:</strong> #${job.id}</p>
+                <p><strong>Event Date:</strong> ${eventDate}</p>
+                <p><strong>Staff Hired:</strong> ${hiredStaff.length}</p>
+                <p><strong>Status:</strong> <span style="color: #10b981;">Completed</span></p>
+            </div>
+        </div>
+
+        <div class="notes">
+            <strong>📋 Event Details:</strong><br>
+            <strong>Event Name:</strong> ${escapeHtml(job.title)}<br>
+            <strong>Event Date:</strong> ${eventDate}<br>
+            <strong>Location:</strong> ${escapeHtml(job.location)}<br>
+            <strong>Role Required:</strong> ${escapeHtml(job.role)}<br>
+            <strong>Time:</strong> ${job.start_time || 'TBD'} - ${job.end_time || 'TBD'}
+        </div>
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Staff Member</th>
+                    <th>Role</th>
+                    <th style="text-align: center;">Quantity</th>
+                    <th style="text-align: right;">Rate</th>
+                    <th style="text-align: right;">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${hiredStaff.map(staff => `
+                    <tr>
+                        <td>
+                            <strong>${escapeHtml(staff.name || 'Staff Member')}</strong><br>
+                            <small style="color: #666;">${escapeHtml(staff.email || '')}</small>
+                        </td>
+                        <td>${escapeHtml(job.role)}</td>
+                        <td style="text-align: center;">1</td>
+                        <td style="text-align: right;">₹${formatNumber(job.pay_rate)}</td>
+                        <td style="text-align: right;">₹${formatNumber(job.pay_rate)}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+
+        <div class="totals">
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>₹${formatNumber(totalStaffPayment)}</span>
+            </div>
+            <div class="total-row">
+                <span>Platform Fee:</span>
+                <span>₹${formatNumber(platformFee)}</span>
+            </div>
+            <div class="total-row">
+                <span>Tax (GST):</span>
+                <span>₹${formatNumber(tax)}</span>
+            </div>
+            <div class="total-row grand-total">
+                <span>TOTAL PAID:</span>
+                <span>₹${formatNumber(grandTotal)}</span>
+            </div>
+        </div>
+
+        <div style="text-align: center;">
+            <span class="payment-status">✓ PAYMENT RELEASED</span>
+        </div>
+
+        <div class="footer">
+            <p><strong>EventFlex - Your Event Staffing Partner</strong></p>
+            <p>This invoice confirms payment release to hired staff for completed event.</p>
+            <p style="margin-top: 10px;">This is a computer-generated invoice and does not require a signature.</p>
+        </div>
+    </div>
+</body>
+</html>`;
+
+        // Open invoice in new window
+        const invoiceWindow = window.open('', '_blank');
+        invoiceWindow.document.write(invoiceHTML);
+        invoiceWindow.document.close();
+
+        showToast('Invoice generated successfully! You can now print or save as PDF.', 'success');
+    }
+
     window.withdrawFromEvent = async function (applicationId, eventTitle) {
         const confirmMessage = `Are you sure you want to withdraw from "${eventTitle}"?\n\nThis action will:\n• Remove you from the event\n• Notify the organizer\n• Cannot be undone\n\nYou can apply again if the position is still available.`;
 
@@ -3914,6 +4469,125 @@
         const modal = document.getElementById('qr-modal');
         modal.style.display = 'none';
         document.body.style.overflow = 'auto';
+    };
+
+    // ============ VERIFICATION MODAL FUNCTIONS ============
+    window.showVerificationModal = async function () {
+        // Check verification status first
+        try {
+            const response = await fetch(`${API_BASE}/verification/status/`, {
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+
+                if (data.has_verification) {
+                    const verification = data.verification;
+
+                    if (verification.status === 'approved') {
+                        showToast('You are already verified!', 'success');
+                        return;
+                    } else if (verification.status === 'pending') {
+                        showToast('Your verification is pending review. Please wait for admin approval.', 'info');
+                        return;
+                    } else if (verification.status === 'rejected') {
+                        showToast(`Your previous verification was rejected: ${verification.rejection_reason}. You can submit again.`, 'warning');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error checking verification status:', error);
+        }
+
+        const modal = document.getElementById('verification-modal');
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    };
+
+    window.closeVerificationModal = function () {
+        const modal = document.getElementById('verification-modal');
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+
+        // Reset form
+        const form = document.getElementById('verification-form');
+        if (form) {
+            form.reset();
+        }
+    };
+
+    window.handleVerificationSubmit = async function (event) {
+        event.preventDefault();
+
+        const form = event.target;
+        const formData = new FormData(form);
+
+        // Helper function to convert file to base64
+        const fileToBase64 = (file) => {
+            return new Promise((resolve, reject) => {
+                if (!file) {
+                    resolve('');
+                    return;
+                }
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        };
+
+        try {
+            // Convert images to base64
+            const docFront = formData.get('document_front');
+            const docBack = formData.get('document_back');
+            const selfie = formData.get('selfie_photo');
+
+            const payload = {
+                full_name: formData.get('full_name'),
+                date_of_birth: formData.get('date_of_birth'),
+                gender: formData.get('gender'),
+                address: formData.get('address'),
+                document_type: formData.get('document_type'),
+                document_number: formData.get('document_number'),
+                document_front: docFront ? await fileToBase64(docFront) : '',
+                document_back: docBack ? await fileToBase64(docBack) : '',
+                selfie_photo: selfie ? await fileToBase64(selfie) : '',
+                emergency_contact_name: formData.get('emergency_contact_name') || '',
+                emergency_contact_phone: formData.get('emergency_contact_phone') || '',
+                emergency_contact_relation: formData.get('emergency_contact_relation') || '',
+                years_of_experience: formData.get('years_of_experience') || '',
+                specialization: formData.get('specialization') || '',
+                previous_companies: formData.get('previous_companies') || '',
+                certifications: formData.get('certifications') || '',
+            };
+
+            const response = await fetch(`${API_BASE}/verification/submit/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include',
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                showToast('✓ Verification submitted successfully! We will review and update your status within 24-48 hours.', 'success');
+                closeVerificationModal();
+
+                // Reload profile data to update verification status
+                if (typeof loadProfileData === 'function') {
+                    await loadProfileData();
+                }
+            } else {
+                showToast(data.error || 'Failed to submit verification', 'error');
+            }
+        } catch (error) {
+            console.error('Error submitting verification:', error);
+            showToast('Error submitting verification. Please try again.', 'error');
+        }
     };
 
     window.addEventListener('click', function (event) {
@@ -5051,9 +5725,37 @@ window.openEventDetailsModal = async function (jobId) {
 
         // Use hired_staff data from job details response (no separate API call needed)
         if (job.hired_staff && job.hired_staff.length > 0) {
-            renderHiredStaff(job.hired_staff, jobId);
+            renderHiredStaff(job.hired_staff, jobId, job.status, job.title);
         } else {
             document.getElementById('hired-staff-list').innerHTML = '<p class="empty-state">No staff hired yet</p>';
+        }
+
+        // Update button based on job status
+        const finishEventBtn = document.getElementById('finish-event-btn');
+        console.log('Job status:', job.status);
+        console.log('Finish event button found:', !!finishEventBtn);
+        if (finishEventBtn) {
+            if (job.status === 'completed') {
+                console.log('Setting button to "Rate Staff" for completed event');
+                // Change to "Rate Staff" button for completed events
+                finishEventBtn.style.display = 'inline-flex';
+                finishEventBtn.style.pointerEvents = 'auto';
+                finishEventBtn.disabled = false;
+                finishEventBtn.style.background = '#DAA520';
+                finishEventBtn.style.borderColor = '#DAA520';
+                finishEventBtn.innerHTML = '<i class="fas fa-star"></i> Rate Staff';
+                finishEventBtn.onclick = () => showRateStaffInfo(job.hired_staff, jobId, job.title);
+            } else {
+                console.log('Setting button to "Finish Event" for active event');
+                // Show Finish Event button for active events
+                finishEventBtn.style.display = 'inline-flex';
+                finishEventBtn.style.pointerEvents = 'auto';
+                finishEventBtn.disabled = false;
+                finishEventBtn.style.background = '#10b981';
+                finishEventBtn.style.borderColor = '#10b981';
+                finishEventBtn.innerHTML = '<i class="fas fa-check-circle"></i> Finish Event';
+                finishEventBtn.onclick = handleFinishEvent;
+            }
         }
 
         modal.style.display = 'flex';
@@ -5065,8 +5767,8 @@ window.openEventDetailsModal = async function (jobId) {
     }
 };
 
-function renderHiredStaff(staff, jobId) {
-    console.log('renderHiredStaff called with:', staff, 'jobId:', jobId);
+function renderHiredStaff(staff, jobId, jobStatus, jobTitle) {
+    console.log('renderHiredStaff called with:', staff, 'jobId:', jobId, 'jobStatus:', jobStatus);
     const container = document.getElementById('hired-staff-list');
 
     if (!staff || staff.length === 0) {
@@ -5075,12 +5777,16 @@ function renderHiredStaff(staff, jobId) {
         return;
     }
 
+    const isCompleted = jobStatus === 'completed';
+
     console.log('Rendering', staff.length, 'staff members');
     container.innerHTML = staff.map(person => {
-        // hired_staff from get_job_details has simple structure: {id, name, email, phone, user_id}
+        // hired_staff from get_job_details has simple structure: {id, name, email, phone, user_id, profile_id}
         const fullName = person.name || 'Unknown';
         const email = person.email || 'Not provided';
         const phone = person.phone || 'Not provided';
+        const userId = person.user_id || person.id;
+        const profileId = person.profile_id || userId;  // Use profile_id for reviews
 
         return `
             <div class="staff-card">
@@ -5092,9 +5798,20 @@ function renderHiredStaff(staff, jobId) {
                         <p><i class="fas fa-phone"></i> ${escapeHtml(phone)}</p>
                     </div>
                 </div>
-                <button class="btn-outline" onclick="fireStaff(${person.id}, ${jobId})" style="background: #dc3545; border-color: #dc3545; color: white; width: 100%; margin-top: 0.5rem;">
-                    <i class="fas fa-user-times"></i> Fire Staff
-                </button>
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                    <button class="btn-outline" onclick="openChatModal(${userId}, '${escapeHtml(fullName)}', 'https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=6366f1&color=fff')" style="flex: 1;">
+                        <i class="fas fa-comment"></i> Message
+                    </button>
+                    ${isCompleted ? `
+                        <button class="btn-primary" onclick="openReviewModal(${profileId}, '${escapeHtml(fullName)}', ${jobId}, '${escapeHtml(jobTitle)}')" style="flex: 1;">
+                            <i class="fas fa-star"></i> Rate
+                        </button>
+                    ` : `
+                        <button class="btn-outline" onclick="fireStaff(${person.id}, ${jobId})" style="background: #dc3545; border-color: #dc3545; color: white; flex: 1;">
+                            <i class="fas fa-user-times"></i> Fire Staff
+                        </button>
+                    `}
+                </div>
             </div>
         `;
     }).join('');
@@ -5190,3 +5907,397 @@ window.handleFinishEvent = async function () {
         showToast('Error finishing event. Please try again.', 'error');
     }
 };
+
+// Function to show info about rating staff
+window.showRateStaffInfo = function (hiredStaff, jobId, jobTitle) {
+    if (!hiredStaff || hiredStaff.length === 0) {
+        showToast('No staff to rate for this event', 'info');
+        return;
+    }
+
+    showToast(`Click the "Rate" button next to each staff member below to rate them individually`, 'info');
+
+    // Scroll to the hired staff section
+    const hiredStaffSection = document.querySelector('.hired-staff-section');
+    if (hiredStaffSection) {
+        hiredStaffSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+};
+
+// Review System Functions
+window.openReviewModal = function (staffId, staffName, jobId, jobTitle) {
+    const modal = document.getElementById('review-modal');
+    if (!modal) return;
+
+    document.getElementById('review-staff-id').value = staffId;
+    document.getElementById('review-job-id').value = jobId;
+    document.getElementById('review-staff-name').textContent = staffName;
+    document.getElementById('review-job-title').textContent = `Event: ${jobTitle}`;
+
+    // Reset form
+    document.getElementById('review-form').reset();
+    document.querySelectorAll('.rating-input .star').forEach(star => {
+        star.textContent = '☆';
+        star.style.color = '#ddd';
+    });
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+};
+
+window.closeReviewModal = function () {
+    const modal = document.getElementById('review-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+};
+
+window.setRating = function (rating) {
+    document.getElementById('review-rating').value = rating;
+    const stars = document.querySelectorAll('.rating-input .star');
+    stars.forEach((star, index) => {
+        if (index < rating) {
+            star.textContent = '★';
+            star.style.color = '#fbbf24';
+        } else {
+            star.textContent = '☆';
+            star.style.color = '#ddd';
+        }
+    });
+};
+
+window.updateRangeValue = function (input, valueId) {
+    const valueEl = document.getElementById(valueId);
+    if (valueEl) {
+        valueEl.textContent = `${input.value}/5`;
+    }
+};
+
+window.submitReview = async function (event) {
+    event.preventDefault();
+
+    const staffId = document.getElementById('review-staff-id').value;
+    const jobId = document.getElementById('review-job-id').value;
+    const rating = document.getElementById('review-rating').value;
+    const reviewText = document.getElementById('review-text').value;
+    const professionalism = document.getElementById('review-professionalism').value;
+    const punctuality = document.getElementById('review-punctuality').value;
+    const quality = document.getElementById('review-quality').value;
+    const communication = document.getElementById('review-communication').value;
+
+    if (!rating) {
+        showToast('Please select an overall rating', 'error');
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/reviews/submit/${jobId}/`, {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                staff_id: staffId,
+                rating: rating,
+                review_text: reviewText,
+                professionalism: parseInt(professionalism),
+                punctuality: parseInt(punctuality),
+                quality_of_work: parseInt(quality),
+                communication: parseInt(communication)
+            })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            const newBadge = data.staff_new_badge || '';
+            const newRating = data.staff_new_rating || '';
+            const badgeText = newBadge === 'elite' ? 'Elite 👑' : newBadge === 'pro' ? 'Pro 🏆' : 'Rising Star ⭐';
+            showToast(`Rating submitted! Staff rating: ${newRating}/5.0 | Badge: ${badgeText}`, 'success');
+            closeReviewModal();
+
+            // Reload job details to show updated review status
+            if (typeof openEventDetailsModal === 'function') {
+                await openEventDetailsModal(jobId);
+            }
+        } else {
+            showToast(data.error || 'Failed to submit review', 'error');
+        }
+    } catch (error) {
+        console.error('Error submitting review:', error);
+        showToast('Error submitting review. Please try again.', 'error');
+    }
+};
+
+// ============================================
+// OLX-STYLE CHAT SYSTEM
+// ============================================
+
+let chatPollInterval = null;
+let lastMessageId = 0;
+
+// Open chat modal with a specific user
+window.openChatModal = async function (partnerId, partnerName, partnerAvatar) {
+    const modal = document.getElementById('chat-modal');
+    const partnerIdInput = document.getElementById('chat-partner-id');
+    const partnerNameEl = document.getElementById('chat-partner-name');
+    const partnerAvatarEl = document.getElementById('chat-partner-avatar');
+    const messagesContainer = document.getElementById('chat-messages');
+
+    if (!modal || !partnerIdInput) return;
+
+    // Set partner info
+    partnerIdInput.value = partnerId;
+    if (partnerNameEl) partnerNameEl.textContent = partnerName || 'User';
+    if (partnerAvatarEl) {
+        partnerAvatarEl.src = partnerAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(partnerName)}&background=6366f1&color=fff`;
+    }
+
+    // Clear messages
+    if (messagesContainer) messagesContainer.innerHTML = '<div class="chat-empty"><i class="fas fa-comments"></i><p>Loading messages...</p></div>';
+
+    // Show modal
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+
+    // Load chat history
+    await loadChatMessages(partnerId);
+
+    // Start polling for new messages
+    startChatPolling(partnerId);
+
+    // Focus input
+    const input = document.getElementById('chat-message-input');
+    if (input) setTimeout(() => input.focus(), 300);
+};
+
+// Close chat modal
+window.closeChatModal = function () {
+    const modal = document.getElementById('chat-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    // Stop polling
+    stopChatPolling();
+
+    // Clear partner ID
+    const partnerIdInput = document.getElementById('chat-partner-id');
+    if (partnerIdInput) partnerIdInput.value = '';
+};
+
+// Load chat messages
+async function loadChatMessages(partnerId) {
+    try {
+        const res = await fetch(`/api/messages/?partner_id=${partnerId}`, {
+            credentials: 'include'
+        });
+
+        if (!res.ok) {
+            throw new Error('Failed to load messages');
+        }
+
+        const data = await res.json();
+        const messages = data.results || [];
+
+        renderChatMessages(messages, partnerId);
+
+        // Track last message ID
+        if (messages.length > 0) {
+            lastMessageId = messages[messages.length - 1].id;
+        }
+
+        // Scroll to bottom
+        scrollChatToBottom();
+
+    } catch (error) {
+        console.error('Error loading messages:', error);
+        const messagesContainer = document.getElementById('chat-messages');
+        if (messagesContainer) {
+            messagesContainer.innerHTML = '<div class="chat-empty"><i class="fas fa-exclamation-circle"></i><p>Failed to load messages</p></div>';
+        }
+    }
+}
+
+// Render chat messages
+function renderChatMessages(messages, partnerId) {
+    const messagesContainer = document.getElementById('chat-messages');
+    if (!messagesContainer) return;
+
+    if (messages.length === 0) {
+        messagesContainer.innerHTML = '<div class="chat-empty"><i class="fas fa-comments"></i><p>No messages yet. Start the conversation!</p></div>';
+        return;
+    }
+
+    let html = '';
+    let lastDate = '';
+
+    messages.forEach(msg => {
+        const msgDate = new Date(msg.created_at);
+        const dateStr = msgDate.toLocaleDateString();
+
+        // Add date separator if date changed
+        if (dateStr !== lastDate) {
+            html += `<div class="chat-date-separator"><span>${formatChatDate(msgDate)}</span></div>`;
+            lastDate = dateStr;
+        }
+
+        // Determine if message was sent by current user
+        // If sender is not the partner, then it was sent by us
+        const isSent = msg.sender.id != partnerId;
+        const messageClass = isSent ? 'sent' : 'received';
+        const timeStr = msgDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        html += `
+            <div class="message ${messageClass}">
+                <div class="message-bubble">
+                    ${escapeHtml(msg.text)}
+                    <span class="message-time">${timeStr}</span>
+                </div>
+            </div>
+        `;
+    });
+
+    messagesContainer.innerHTML = html;
+}
+
+// Format chat date
+function formatChatDate(date) {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) {
+        return 'Today';
+    } else if (date.toDateString() === yesterday.toDateString()) {
+        return 'Yesterday';
+    } else {
+        return date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+}
+
+// Send chat message
+window.sendChatMessage = async function (event) {
+    event.preventDefault();
+
+    const input = document.getElementById('chat-message-input');
+    const partnerId = document.getElementById('chat-partner-id').value;
+
+    if (!input || !partnerId) return;
+
+    const text = input.value.trim();
+    if (!text) return;
+
+    try {
+        const res = await fetch('/api/messages/send/', {
+            method: 'POST',
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                recipient_id: partnerId,
+                text: text
+            })
+        });
+
+        if (!res.ok) {
+            throw new Error('Failed to send message');
+        }
+
+        const data = await res.json();
+
+        // Clear input
+        input.value = '';
+        input.style.height = 'auto';
+
+        // Reload messages
+        await loadChatMessages(partnerId);
+
+        showToast('Message sent!', 'success');
+
+    } catch (error) {
+        console.error('Error sending message:', error);
+        showToast('Failed to send message. Please try again.', 'error');
+    }
+};
+
+// Handle Enter key in chat input
+window.handleChatKeyPress = function (event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        const form = document.getElementById('chat-form');
+        if (form) form.dispatchEvent(new Event('submit'));
+    }
+};
+
+// Auto-resize textarea
+document.addEventListener('DOMContentLoaded', function () {
+    const chatInput = document.getElementById('chat-message-input');
+    if (chatInput) {
+        chatInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+    }
+});
+
+// Scroll chat to bottom
+function scrollChatToBottom() {
+    const messagesContainer = document.getElementById('chat-messages');
+    if (messagesContainer) {
+        setTimeout(() => {
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }, 100);
+    }
+}
+
+// Start polling for new messages
+function startChatPolling(partnerId) {
+    stopChatPolling(); // Clear any existing interval
+
+    chatPollInterval = setInterval(async () => {
+        try {
+            const res = await fetch(`/api/messages/?partner_id=${partnerId}`, {
+                credentials: 'include'
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const messages = data.results || [];
+
+                if (messages.length > 0) {
+                    const latestId = messages[messages.length - 1].id;
+                    if (latestId > lastMessageId) {
+                        // New messages available
+                        lastMessageId = latestId;
+                        renderChatMessages(messages, partnerId);
+                        scrollChatToBottom();
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error polling messages:', error);
+        }
+    }, 2000); // Poll every 2 seconds
+}
+
+// Stop polling
+function stopChatPolling() {
+    if (chatPollInterval) {
+        clearInterval(chatPollInterval);
+        chatPollInterval = null;
+    }
+}
+
+// Close chat modal when clicking outside
+document.addEventListener('click', function (event) {
+    const modal = document.getElementById('chat-modal');
+    if (modal && event.target === modal) {
+        closeChatModal();
+    }
+});
+

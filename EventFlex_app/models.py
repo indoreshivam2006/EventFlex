@@ -4,6 +4,12 @@ from django.contrib.auth.models import User
 
 class UserProfile(models.Model):
 	USER_TYPES = (('organizer', 'Organizer'), ('staff', 'EventPro'))
+	BADGE_LEVELS = (
+		('rising_star', 'Rising Star'),
+		('pro', 'Pro'),
+		('elite', 'Elite'),
+	)
+	
 	user = models.OneToOneField(User, on_delete=models.CASCADE)
 	user_type = models.CharField(max_length=20, choices=USER_TYPES, default='staff')
 	city = models.CharField(max_length=120, blank=True)
@@ -11,8 +17,13 @@ class UserProfile(models.Model):
 	bio = models.TextField(blank=True)
 	kyc_verified = models.BooleanField(default=False)
 	video_verified = models.BooleanField(default=False)
-	badge = models.CharField(max_length=32, blank=True)
+	badge = models.CharField(max_length=32, choices=BADGE_LEVELS, default='rising_star')
 	wallet_balance = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+	
+	# Reputation fields
+	average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=0.00)
+	total_reviews = models.PositiveIntegerField(default=0)
+	total_events_completed = models.PositiveIntegerField(default=0)
 	
 	# Bank Account Details
 	bank_account_holder = models.CharField(max_length=200, blank=True)
@@ -46,6 +57,34 @@ class UserProfile(models.Model):
 			return self.wallet_balance
 		else:
 			raise ValueError("Insufficient balance")
+	
+	def update_badge(self):
+		"""Update badge based on average rating"""
+		if self.total_reviews == 0:
+			self.badge = 'rising_star'
+		elif self.average_rating >= 4.0:
+			self.badge = 'elite'
+		elif self.average_rating >= 3.0:
+			self.badge = 'pro'
+		else:
+			self.badge = 'rising_star'
+		self.save()
+		return self.badge
+	
+	def update_rating(self):
+		"""Recalculate average rating from all reviews"""
+		from django.db.models import Avg
+		reviews = self.received_reviews.all()
+		if reviews.exists():
+			avg = reviews.aggregate(Avg('rating'))['rating__avg']
+			self.average_rating = round(avg, 2) if avg else 0.00
+			self.total_reviews = reviews.count()
+		else:
+			self.average_rating = 0.00
+			self.total_reviews = 0
+		self.save()
+		self.update_badge()
+		return self.average_rating
 
 
 class Job(models.Model):
@@ -189,6 +228,101 @@ class BlacklistedToken(models.Model):
 	
 	def __str__(self):
 		return f"Blacklisted token for {self.user.username}"
+
+
+class VerificationDocument(models.Model):
+	"""Store user verification documents and information"""
+	VERIFICATION_STATUS = (
+		('pending', 'Pending Review'),
+		('approved', 'Approved'),
+		('rejected', 'Rejected'),
+	)
+	
+	DOCUMENT_TYPES = (
+		('aadhar', 'Aadhar Card'),
+		('pan', 'PAN Card'),
+		('voter_id', 'Voter ID'),
+		('driving_license', 'Driving License'),
+		('passport', 'Passport'),
+	)
+	
+	user = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='verification_documents')
+	
+	# Personal Information
+	full_name = models.CharField(max_length=200)
+	date_of_birth = models.DateField()
+	gender = models.CharField(max_length=20, choices=(('male', 'Male'), ('female', 'Female'), ('other', 'Other')))
+	address = models.TextField()
+	
+	# Document Information
+	document_type = models.CharField(max_length=50, choices=DOCUMENT_TYPES)
+	document_number = models.CharField(max_length=100)
+	document_front = models.TextField(blank=True)  # Base64 encoded image or file path
+	document_back = models.TextField(blank=True)   # Base64 encoded image or file path
+	selfie_photo = models.TextField(blank=True)    # Base64 encoded image
+	
+	# Emergency Contact
+	emergency_contact_name = models.CharField(max_length=200, blank=True)
+	emergency_contact_phone = models.CharField(max_length=32, blank=True)
+	emergency_contact_relation = models.CharField(max_length=100, blank=True)
+	
+	# Professional Details (for Event Pros)
+	years_of_experience = models.CharField(max_length=50, blank=True)
+	specialization = models.CharField(max_length=200, blank=True)
+	previous_companies = models.TextField(blank=True)
+	certifications = models.TextField(blank=True)
+	
+	# Verification Status
+	status = models.CharField(max_length=20, choices=VERIFICATION_STATUS, default='pending')
+	verified_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='verified_documents')
+	verified_at = models.DateTimeField(null=True, blank=True)
+	rejection_reason = models.TextField(blank=True)
+	
+	# Timestamps
+	submitted_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+	
+	class Meta:
+		ordering = ['-submitted_at']
+	
+	def __str__(self):
+		return f"Verification for {self.user.user.username} - {self.status}"
+
+
+class Review(models.Model):
+	"""Store ratings and reviews for staff after event completion"""
+	job = models.ForeignKey(Job, on_delete=models.CASCADE, related_name='reviews')
+	staff = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='received_reviews')
+	organizer = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='given_reviews')
+	
+	# Rating (1-5 stars)
+	rating = models.DecimalField(max_digits=2, decimal_places=1)
+	
+	# Review text
+	review_text = models.TextField(blank=True)
+	
+	# Specific ratings
+	professionalism = models.PositiveIntegerField(default=5)  # 1-5
+	punctuality = models.PositiveIntegerField(default=5)      # 1-5
+	quality_of_work = models.PositiveIntegerField(default=5)  # 1-5
+	communication = models.PositiveIntegerField(default=5)    # 1-5
+	
+	# Metadata
+	created_at = models.DateTimeField(auto_now_add=True)
+	updated_at = models.DateTimeField(auto_now=True)
+	
+	class Meta:
+		ordering = ['-created_at']
+		unique_together = ('job', 'staff', 'organizer')
+	
+	def __str__(self):
+		return f"Review for {self.staff.user.username} - {self.rating}★"
+	
+	def save(self, *args, **kwargs):
+		super().save(*args, **kwargs)
+		# Update staff's rating after saving review
+		self.staff.update_rating()
+
 
 
 

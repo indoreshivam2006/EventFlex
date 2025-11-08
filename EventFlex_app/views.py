@@ -4,7 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.db import models as django_models
-from .models import UserProfile, Job, Application, Message, Transaction, AutocompleteSuggestion
+from .models import UserProfile, Job, Application, Message, Transaction, AutocompleteSuggestion, VerificationDocument
 from .jwt_utils import generate_jwt_token, generate_refresh_token, get_token_from_request, blacklist_token
 import json
 import re
@@ -594,6 +594,10 @@ def _profile_to_dict(profile: UserProfile):
 		'kyc_verified': profile.kyc_verified,
 		'video_verified': profile.video_verified,
 		'badge': profile.badge,
+		'wallet_balance': str(profile.wallet_balance),
+		'average_rating': str(profile.average_rating),
+		'total_reviews': profile.total_reviews,
+		'total_events_completed': profile.total_events_completed,
 	}
 
 
@@ -633,6 +637,7 @@ def _application_to_dict(application):
 			'end_time': safe_isoformat(application.job.end_time),
 			'pay_rate': str(application.job.pay_rate),
 			'payment_type': application.job.payment_type,
+			'status': application.job.status,
 			'organizer': _profile_to_dict(application.job.organizer),
 		},
 		'applicant': _profile_to_dict(application.applicant),
@@ -926,6 +931,8 @@ def register_view(request):
 	email = payload.get('email')
 	password = payload.get('password')
 	user_type = payload.get('user_type', 'staff')
+	phone = payload.get('phone', '')
+	city = payload.get('city', '')
 
 	if not username or not password:
 		return JsonResponse({'error': 'username and password required'}, status=400)
@@ -933,9 +940,14 @@ def register_view(request):
 	if User.objects.filter(username=username).exists():
 		return JsonResponse({'error': 'username taken'}, status=400)
 
-	# Create user and profile
+	# Create user and profile with all signup data
 	user = User.objects.create_user(username=username, email=email, password=password)
-	profile = UserProfile.objects.create(user=user, user_type=user_type, city=payload.get('city', ''))
+	profile = UserProfile.objects.create(
+		user=user, 
+		user_type=user_type, 
+		city=city,
+		phone=phone
+	)
 	
 	# Generate JWT tokens
 	access_token = generate_jwt_token(user)
@@ -2420,7 +2432,8 @@ def get_job_details(request, job_id):
 				'name': app.full_name or app.applicant.user.username,
 				'email': app.email or app.applicant.user.email,
 				'phone': app.phone or app.applicant.phone,
-				'user_id': app.applicant.user.id
+				'user_id': app.applicant.user.id,
+				'profile_id': app.applicant.id  # Add UserProfile ID for reviews
 			} for app in hired_staff]
 		
 		job_data = {
@@ -2438,6 +2451,7 @@ def get_job_details(request, job_id):
 			'number_of_staff': job.number_of_staff,
 			'requirements': job.requirements,
 			'skills': job.skills,
+			'status': job.status,  # Add status field
 			'hired_staff': staff_list
 		}
 		
@@ -2463,6 +2477,10 @@ def finish_job(request, job_id):
 		from django.db import transaction as db_transaction
 		
 		job = get_object_or_404(Job, id=job_id)
+		
+		# Check if job is already completed
+		if job.status == 'completed':
+			return JsonResponse({'error': 'This event has already been finished'}, status=400)
 		
 		try:
 			profile = UserProfile.objects.get(user=request.user)
@@ -2683,6 +2701,295 @@ def privacy_policy_page(request):
 def terms_page(request):
 	"""Terms of Service page"""
 	return render(request, 'terms-of-service.html')
+
+
+@csrf_exempt
+def submit_verification(request):
+	"""Submit verification documents and information"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'authentication required'}, status=401)
+	
+	try:
+		profile = UserProfile.objects.get(user=request.user)
+	except UserProfile.DoesNotExist:
+		return JsonResponse({'error': 'profile not found'}, status=404)
+	
+	try:
+		payload = json.loads(request.body.decode('utf-8'))
+	except Exception:
+		return JsonResponse({'error': 'invalid json'}, status=400)
+	
+	# Required fields
+	required_fields = ['full_name', 'date_of_birth', 'gender', 'address', 'document_type', 'document_number']
+	for field in required_fields:
+		if not payload.get(field):
+			return JsonResponse({'error': f'{field} is required'}, status=400)
+	
+	try:
+		# Check if user already has a pending or approved verification
+		existing = VerificationDocument.objects.filter(
+			user=profile,
+			status__in=['pending', 'approved']
+		).first()
+		
+		if existing:
+			if existing.status == 'approved':
+				return JsonResponse({'error': 'You are already verified'}, status=400)
+			else:
+				return JsonResponse({'error': 'You have a pending verification request'}, status=400)
+		
+		# Create verification document
+		verification = VerificationDocument.objects.create(
+			user=profile,
+			full_name=payload.get('full_name'),
+			date_of_birth=payload.get('date_of_birth'),
+			gender=payload.get('gender'),
+			address=payload.get('address'),
+			document_type=payload.get('document_type'),
+			document_number=payload.get('document_number'),
+			document_front=payload.get('document_front', ''),
+			document_back=payload.get('document_back', ''),
+			selfie_photo=payload.get('selfie_photo', ''),
+			emergency_contact_name=payload.get('emergency_contact_name', ''),
+			emergency_contact_phone=payload.get('emergency_contact_phone', ''),
+			emergency_contact_relation=payload.get('emergency_contact_relation', ''),
+			years_of_experience=payload.get('years_of_experience', ''),
+			specialization=payload.get('specialization', ''),
+			previous_companies=payload.get('previous_companies', ''),
+			certifications=payload.get('certifications', ''),
+		)
+		
+		return JsonResponse({
+			'message': 'Verification submitted successfully',
+			'verification_id': verification.id,
+			'status': verification.status
+		})
+	
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def get_verification_status(request):
+	"""Get user's verification status"""
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'authentication required'}, status=401)
+	
+	try:
+		profile = UserProfile.objects.get(user=request.user)
+	except UserProfile.DoesNotExist:
+		return JsonResponse({'error': 'profile not found'}, status=404)
+	
+	# Get latest verification document
+	verification = VerificationDocument.objects.filter(user=profile).order_by('-submitted_at').first()
+	
+	if not verification:
+		return JsonResponse({
+			'has_verification': False,
+			'kyc_verified': profile.kyc_verified
+		})
+	
+	return JsonResponse({
+		'has_verification': True,
+		'verification': {
+			'id': verification.id,
+			'status': verification.status,
+			'submitted_at': safe_isoformat(verification.submitted_at),
+			'verified_at': safe_isoformat(verification.verified_at),
+			'rejection_reason': verification.rejection_reason,
+			'document_type': verification.document_type,
+			'full_name': verification.full_name,
+		},
+		'kyc_verified': profile.kyc_verified
+	})
+
+
+@csrf_exempt
+def submit_review(request, job_id):
+	"""Submit a review for staff after event completion"""
+	if request.method != 'POST':
+		return JsonResponse({'error': 'POST required'}, status=400)
+	
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'Authentication required'}, status=401)
+	
+	try:
+		# Get organizer profile
+		organizer_profile = UserProfile.objects.get(user=request.user)
+		if organizer_profile.user_type != 'organizer':
+			return JsonResponse({'error': 'Only organizers can submit reviews'}, status=403)
+		
+		# Get job
+		job = get_object_or_404(Job, id=job_id)
+		
+		# Verify ownership and completion
+		if job.organizer != organizer_profile:
+			return JsonResponse({'error': 'You do not own this job'}, status=403)
+		
+		if job.status != 'completed':
+			return JsonResponse({'error': 'Can only review completed events'}, status=400)
+		
+		# Parse request data
+		import json
+		payload = json.loads(request.body)
+		
+		staff_id = payload.get('staff_id')
+		rating = payload.get('rating')
+		review_text = payload.get('review_text', '')
+		professionalism = payload.get('professionalism', 5)
+		punctuality = payload.get('punctuality', 5)
+		quality_of_work = payload.get('quality_of_work', 5)
+		communication = payload.get('communication', 5)
+		
+		if not staff_id or not rating:
+			return JsonResponse({'error': 'staff_id and rating are required'}, status=400)
+		
+		# Validate rating
+		try:
+			rating = float(rating)
+			if rating < 1 or rating > 5:
+				return JsonResponse({'error': 'Rating must be between 1 and 5'}, status=400)
+		except ValueError:
+			return JsonResponse({'error': 'Invalid rating value'}, status=400)
+		
+		# Get staff profile
+		staff_profile = get_object_or_404(UserProfile, id=staff_id)
+		
+		# Verify staff worked on this job
+		application = Application.objects.filter(
+			job=job,
+			applicant=staff_profile,
+			status='accepted'
+		).first()
+		
+		if not application:
+			return JsonResponse({'error': 'Staff did not work on this event'}, status=400)
+		
+		# Create or update review
+		from .models import Review
+		review, created = Review.objects.update_or_create(
+			job=job,
+			staff=staff_profile,
+			organizer=organizer_profile,
+			defaults={
+				'rating': rating,
+				'review_text': review_text,
+				'professionalism': professionalism,
+				'punctuality': punctuality,
+				'quality_of_work': quality_of_work,
+				'communication': communication,
+			}
+		)
+		
+		# Increment total_events_completed for staff if this is first review for this job
+		if created:
+			staff_profile.total_events_completed += 1
+			staff_profile.save()
+		
+		return JsonResponse({
+			'success': True,
+			'message': 'Review submitted successfully',
+			'review_id': review.id,
+			'staff_new_rating': str(staff_profile.average_rating),
+			'staff_new_badge': staff_profile.badge,
+		})
+	
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def get_reviews(request, staff_id):
+	"""Get all reviews for a staff member"""
+	try:
+		staff_profile = get_object_or_404(UserProfile, id=staff_id)
+		
+		from .models import Review
+		reviews = Review.objects.filter(staff=staff_profile).order_by('-created_at')
+		
+		reviews_data = []
+		for review in reviews:
+			reviews_data.append({
+				'id': review.id,
+				'rating': str(review.rating),
+				'review_text': review.review_text,
+				'professionalism': review.professionalism,
+				'punctuality': review.punctuality,
+				'quality_of_work': review.quality_of_work,
+				'communication': review.communication,
+				'job_title': review.job.title,
+				'organizer_name': review.organizer.user.get_full_name() or review.organizer.user.username,
+				'created_at': safe_isoformat(review.created_at),
+			})
+		
+		return JsonResponse({
+			'staff': _profile_to_dict(staff_profile),
+			'reviews': reviews_data,
+			'total_reviews': len(reviews_data),
+		})
+	
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=500)
+
+
+@csrf_exempt
+def get_staff_to_review(request, job_id):
+	"""Get list of staff that can be reviewed for a completed job"""
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'Authentication required'}, status=401)
+	
+	try:
+		organizer_profile = UserProfile.objects.get(user=request.user)
+		if organizer_profile.user_type != 'organizer':
+			return JsonResponse({'error': 'Only organizers can review staff'}, status=403)
+		
+		job = get_object_or_404(Job, id=job_id)
+		
+		if job.organizer != organizer_profile:
+			return JsonResponse({'error': 'You do not own this job'}, status=403)
+		
+		if job.status != 'completed':
+			return JsonResponse({'error': 'Can only review completed events'}, status=400)
+		
+		# Get accepted applications (hired staff)
+		applications = Application.objects.filter(job=job, status='accepted')
+		
+		from .models import Review
+		staff_list = []
+		for app in applications:
+			# Check if already reviewed
+			existing_review = Review.objects.filter(
+				job=job,
+				staff=app.applicant,
+				organizer=organizer_profile
+			).first()
+			
+			staff_list.append({
+				'staff_id': app.applicant.id,
+				'staff_name': app.applicant.user.get_full_name() or app.applicant.user.username,
+				'staff_email': app.applicant.user.email,
+				'staff_phone': app.applicant.phone,
+				'has_review': existing_review is not None,
+				'review': {
+					'id': existing_review.id,
+					'rating': str(existing_review.rating),
+					'review_text': existing_review.review_text,
+					'created_at': safe_isoformat(existing_review.created_at),
+				} if existing_review else None
+			})
+		
+		return JsonResponse({
+			'job_id': job.id,
+			'job_title': job.title,
+			'staff': staff_list,
+		})
+	
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=500)
+
 
 
 

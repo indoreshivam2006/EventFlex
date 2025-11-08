@@ -1,13 +1,14 @@
 from django.contrib import admin
-from .models import UserProfile, Job, Application, Transaction, Message, AutocompleteSuggestion, BlacklistedToken
+from .models import UserProfile, Job, Application, Transaction, Message, AutocompleteSuggestion, BlacklistedToken, VerificationDocument, Review
 
 # Register your models here.
 
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-	list_display = ('user', 'user_type', 'city', 'kyc_verified', 'badge')
+	list_display = ('user', 'user_type', 'city', 'kyc_verified', 'badge', 'average_rating', 'total_reviews')
 	search_fields = ('user__username', 'user__email', 'city')
+	list_filter = ('badge', 'user_type')
 
 
 @admin.register(Job)
@@ -53,4 +54,43 @@ class BlacklistedTokenAdmin(admin.ModelAdmin):
 	def has_add_permission(self, request):
 		# Prevent manual addition through admin
 		return False
+
+
+@admin.register(VerificationDocument)
+class VerificationDocumentAdmin(admin.ModelAdmin):
+	list_display = ('user', 'full_name', 'document_type', 'status', 'submitted_at', 'verified_at')
+	search_fields = ('user__user__username', 'full_name', 'document_number')
+	list_filter = ('status', 'document_type', 'gender', 'submitted_at')
+	readonly_fields = ('submitted_at', 'updated_at')
+	
+	fieldsets = (
+		('User Information', {
+			'fields': ('user', 'status', 'verified_by', 'verified_at', 'rejection_reason')
+		}),
+		('Personal Details', {
+			'fields': ('full_name', 'date_of_birth', 'gender', 'address')
+		}),
+		('Document Information', {
+			'fields': ('document_type', 'document_number')
+		}),
+		('Emergency Contact', {
+			'fields': ('emergency_contact_name', 'emergency_contact_phone', 'emergency_contact_relation')
+		}),
+		('Professional Details', {
+			'fields': ('years_of_experience', 'specialization', 'previous_companies', 'certifications')
+		}),
+		('Timestamps', {
+			'fields': ('submitted_at', 'updated_at')
+		}),
+	)
+
+
+@admin.register(Review)
+class ReviewAdmin(admin.ModelAdmin):
+	list_display = ('staff', 'organizer', 'job', 'rating', 'created_at')
+	search_fields = ('staff__user__username', 'organizer__user__username', 'job__title')
+	list_filter = ('rating', 'created_at')
+	readonly_fields = ('created_at', 'updated_at')
+
+
 

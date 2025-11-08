@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organizer Dashboard - EventFlex</title>
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.7">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
@@ -829,8 +829,118 @@
         </div>
     </div>
 
+    <!-- Rate Staff Modal -->
+    <div id="review-modal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 600px;">
+            <span class="close-modal" onclick="closeReviewModal()">&times;</span>
+            <h2 style="margin-bottom: 1.5rem; color: var(--gold);">
+                <i class="fas fa-star"></i> Rate Staff
+            </h2>
+
+            <form id="review-form" onsubmit="submitReview(event)">
+                <input type="hidden" id="review-job-id">
+                <input type="hidden" id="review-staff-id">
+
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 id="review-staff-name" style="color: var(--gold);"></h3>
+                    <p id="review-job-title" style="color: var(--text-secondary);"></p>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Overall Rating *</label>
+                    <div class="rating-input" style="display: flex; gap: 0.5rem; font-size: 2rem;">
+                        <span class="star" data-rating="1" onclick="setRating(1)">☆</span>
+                        <span class="star" data-rating="2" onclick="setRating(2)">☆</span>
+                        <span class="star" data-rating="3" onclick="setRating(3)">☆</span>
+                        <span class="star" data-rating="4" onclick="setRating(4)">☆</span>
+                        <span class="star" data-rating="5" onclick="setRating(5)">☆</span>
+                    </div>
+                    <input type="hidden" id="review-rating" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Professionalism</label>
+                    <input type="range" id="review-professionalism" min="1" max="5" value="5" style="width: 100%;"
+                        oninput="updateRangeValue(this, 'prof-value')">
+                    <span id="prof-value" style="color: var(--gold); font-weight: 600;">5/5</span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Punctuality</label>
+                    <input type="range" id="review-punctuality" min="1" max="5" value="5" style="width: 100%;"
+                        oninput="updateRangeValue(this, 'punct-value')">
+                    <span id="punct-value" style="color: var(--gold); font-weight: 600;">5/5</span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Quality of Work</label>
+                    <input type="range" id="review-quality" min="1" max="5" value="5" style="width: 100%;"
+                        oninput="updateRangeValue(this, 'qual-value')">
+                    <span id="qual-value" style="color: var(--gold); font-weight: 600;">5/5</span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Communication</label>
+                    <input type="range" id="review-communication" min="1" max="5" value="5" style="width: 100%;"
+                        oninput="updateRangeValue(this, 'qual-value')">
+                    <span id="comm-value" style="color: var(--gold); font-weight: 600;">5/5</span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Comments (Optional)</label>
+                    <textarea id="review-text" rows="4"
+                        style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 8px;"
+                        placeholder="Share your experience with this staff member..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn-outline" onclick="closeReviewModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-paper-plane"></i> Submit Rating
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chat Modal (OLX-style) -->
+    <div id="chat-modal" class="chat-modal" style="display: none;">
+        <div class="chat-container">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <img id="chat-partner-avatar" src="" alt="User" class="chat-avatar">
+                    <div>
+                        <h3 id="chat-partner-name">User</h3>
+                        <p id="chat-partner-status" class="chat-status">Online</p>
+                    </div>
+                </div>
+                <button class="chat-close-btn" onclick="closeChatModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Chat Messages -->
+            <div id="chat-messages" class="chat-messages">
+                <!-- Messages will be loaded here -->
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input-container">
+                <form id="chat-form" onsubmit="sendChatMessage(event)">
+                    <input type="hidden" id="chat-partner-id" value="">
+                    <textarea id="chat-message-input" placeholder="Type a message..." rows="1"
+                        onkeydown="handleChatKeyPress(event)"></textarea>
+                    <button type="submit" class="chat-send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
-    <script src="{% static 'js/script.js' %}"></script>
+    <script src="{% static 'js/script.js' %}?v=1.7"></script>
 </body>
 
 </html>
