@@ -1765,10 +1765,19 @@ textarea {
     letter-spacing: 0.5px;
 }
 
+/* Table Wrapper for Responsive Scroll */
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-top: 1.2rem;
+}
+
 .transactions-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 1.2rem;
+    min-width: 600px;
+    /* Prevent table from being too narrow */
 }
 
 .transactions-table th,
@@ -1777,6 +1786,7 @@ textarea {
     text-align: left;
     border-bottom: 1px solid #f1f5f9;
     font-size: 0.95rem;
+    white-space: nowrap;
 }
 
 .transactions-table th {
@@ -4254,4 +4264,274 @@ select.form-input {
     align-items: center;
     justify-content: center;
     border: 2px solid white;
+}
+
+/* ============================================
+   ENHANCED RESPONSIVE DESIGN - v1.8
+   ============================================ */
+
+/* Global Image Responsiveness */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Prevent content overflow */
+* {
+    box-sizing: border-box;
+}
+
+/* Responsive Table Enhancements */
+@media (max-width: 768px) {
+    .transactions-table {
+        min-width: 500px;
+        font-size: 0.85rem;
+    }
+
+    .transactions-table th,
+    .transactions-table td {
+        padding: 0.7rem 0.8rem;
+    }
+
+    /* Add scroll indicator */
+    .table-wrapper {
+        position: relative;
+        box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* Enhanced Talent Card Mobile Layout */
+@media (max-width: 768px) {
+    .talent-card {
+        padding: 1.5rem;
+    }
+
+    .talent-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .talent-header img {
+        width: 56px;
+        height: 56px;
+    }
+
+    .talent-actions {
+        flex-direction: column;
+    }
+
+    .talent-actions button {
+        width: 100%;
+        flex: none;
+    }
+}
+
+/* Job Listing Mobile Optimization */
+@media (max-width: 768px) {
+    .job-listing {
+        padding: 1.5rem;
+    }
+
+    .job-listing-header {
+        gap: 0.8rem;
+    }
+
+    .job-meta {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .job-actions {
+        width: 100%;
+    }
+
+    .job-actions button {
+        flex: 1;
+        min-width: 120px;
+    }
+}
+
+/* Touch-Friendly Button Sizing */
+@media (max-width: 768px) {
+
+    .btn,
+    .btn-primary,
+    .btn-secondary,
+    .btn-outline,
+    .btn-success {
+        min-height: 44px;
+        /* Recommended touch target size */
+        padding: 0.75rem 1.25rem;
+    }
+
+    .btn-icon {
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
+
+/* Dashboard Stats Optimization */
+@media (max-width: 768px) {
+    .stat-card {
+        padding: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.8rem;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+    }
+}
+
+/* Form Inputs Touch Optimization */
+@media (max-width: 768px) {
+
+    .form-input,
+    .form-textarea,
+    .form-select {
+        min-height: 44px;
+        font-size: 16px;
+        /* Prevents zoom on iOS */
+        padding: 0.75rem 1rem;
+    }
+
+    .form-textarea {
+        min-height: 100px;
+    }
+}
+
+/* Modal Improvements for Mobile */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        max-width: 95%;
+        margin: 1rem auto;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        padding: 1.25rem;
+    }
+
+    .modal-body {
+        padding: 1.25rem;
+    }
+}
+
+/* Navigation Improvements */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 0.75rem 0;
+    }
+
+    .nav-links a {
+        padding: 0.75rem 1rem;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+    }
+}
+
+/* Card Grid Responsive Gaps */
+@media (max-width: 768px) {
+
+    .talent-grid,
+    .dashboard-grid {
+        gap: 1rem;
+    }
+}
+
+/* Extra Small Devices (< 400px) */
+@media (max-width: 400px) {
+    .container {
+        width: 95%;
+        padding: 0 0.75rem;
+    }
+
+    h1 {
+        font-size: 1.75rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    h3 {
+        font-size: 1.25rem;
+    }
+
+    .hero-title {
+        font-size: 2rem;
+        line-height: 1.2;
+    }
+
+    .btn,
+    .btn-primary,
+    .btn-secondary {
+        font-size: 0.9rem;
+        padding: 0.7rem 1rem;
+    }
+
+    .stat-card {
+        padding: 1.25rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+
+    .talent-card,
+    .job-listing {
+        padding: 1.25rem;
+    }
+
+    .chat-container {
+        padding: 0;
+    }
+
+    .message-bubble {
+        max-width: 90%;
+        font-size: 0.9rem;
+    }
+}
+
+/* Landscape Mode Optimization for Small Devices */
+@media (max-height: 500px) and (orientation: landscape) {
+    .modal-content {
+        max-height: 95vh;
+        margin: 0.5rem auto;
+    }
+
+    .chat-container {
+        height: 95vh;
+    }
+
+    .hero {
+        padding: 2rem 0;
+    }
+}
+
+/* Print Styles */
+@media print {
+
+    .navbar,
+    .sidebar,
+    .btn,
+    .chat-modal,
+    .toast-container {
+        display: none !important;
+    }
+
+    .dashboard-main {
+        padding: 0;
+    }
+
+    * {
+        background: white !important;
+        color: black !important;
+    }
 }

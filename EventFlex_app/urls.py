@@ -14,6 +14,7 @@ urlpatterns = [
     path('jobs/<int:job_id>/finish/', views.finish_job, name='finish_job'),
 
     path('talent/', views.talent_list, name='talent_list'),
+    path('profiles/me/', views.my_profile, name='my_profile'),
     path('profiles/<int:pk>/', views.profile_detail, name='profile_detail'),
     path('profiles/update/', views.update_profile, name='update_profile'),
 

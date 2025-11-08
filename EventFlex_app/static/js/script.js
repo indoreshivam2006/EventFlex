@@ -1,4 +1,4 @@
-// Rate Staff Button Update - v1.5
+// EventFlex - v2.0 (Auto-Fill Profile + Enhanced Responsive)
 (function () {
     'use strict';
 
@@ -33,12 +33,54 @@
             try {
                 currentUser = JSON.parse(stored);
                 updateUIForLoggedInUser();
+
+                // Fetch profile picture in background (not stored in localStorage)
+                fetchProfilePicture();
             } catch (e) {
                 localStorage.removeItem('eventflex_user');
             }
         }
 
         checkPageAuthentication();
+    }
+
+    // Fetch profile picture separately to avoid localStorage quota issues
+    async function fetchProfilePicture() {
+        if (!currentUser || !currentUser.username) return;
+
+        try {
+            const response = await fetch(`${API_BASE}/profiles/me/`, {
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.profile && data.profile.profile_picture) {
+                    currentUser.profile_picture = data.profile.profile_picture;
+
+                    // Update avatar images if they exist
+                    updateAvatarImages();
+                }
+            }
+        } catch (error) {
+            console.log('Could not fetch profile picture:', error);
+        }
+    }
+
+    // Update all avatar images on the page
+    function updateAvatarImages() {
+        if (!currentUser) return;
+
+        const avatarUrl = currentUser.profile_picture ||
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=6366f1&color=fff`;
+
+        const profileImages = document.querySelectorAll('.profile-image-large, .user-avatar img, .nav-user img, .profile-header img, #user-avatar, #organizer-profile-image');
+        profileImages.forEach(img => {
+            if (img) {
+                img.src = avatarUrl;
+                img.alt = currentUser.username;
+            }
+        });
     }
 
     function checkPageAuthentication() {
@@ -69,12 +111,55 @@
     function saveCurrentUser(user) {
         currentUser = user;
         if (user) {
-            localStorage.setItem('eventflex_user', JSON.stringify(user));
+            // Create a copy without profile_picture to avoid localStorage quota issues
+            const userForStorage = { ...user };
+            delete userForStorage.profile_picture;
+            localStorage.setItem('eventflex_user', JSON.stringify(userForStorage));
             updateUIForLoggedInUser();
         } else {
             localStorage.removeItem('eventflex_user');
         }
     }
+
+    // Refresh current user profile from server
+    async function refreshUserProfile() {
+        if (!currentUser || !currentUser.username) {
+            console.log('No user to refresh');
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE}/profiles/me/`, {
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data.profile) {
+                    // Store profile_picture in memory only (not in localStorage)
+                    if (data.profile.profile_picture) {
+                        currentUser.profile_picture = data.profile.profile_picture;
+                    }
+
+                    // Save rest of profile to localStorage (without profile_picture)
+                    saveCurrentUser(data.profile);
+                    console.log('Profile refreshed from server:', data.profile);
+
+                    // Reload profile data if on dashboard
+                    if (typeof loadProfileData === 'function') {
+                        await loadProfileData();
+                    }
+
+                    return data.profile;
+                }
+            }
+        } catch (error) {
+            console.error('Error refreshing profile:', error);
+        }
+    }
+
+    // Make globally accessible
+    window.refreshUserProfile = refreshUserProfile;
 
     function updateUIForLoggedInUser() {
         const welcomeElements = document.querySelectorAll('.user-welcome');
@@ -227,7 +312,59 @@
             if (welcomeMsg) {
                 welcomeMsg.textContent = `Welcome back, ${currentUser.username}! 👋`;
             }
+
+            // Start periodic verification status check (every 30 seconds)
+            if (currentUser && !currentUser.kyc_verified) {
+                startVerificationStatusCheck();
+            }
         }
+    }
+
+    // Periodic verification status check
+    let verificationCheckInterval = null;
+
+    function startVerificationStatusCheck() {
+        // Clear any existing interval
+        if (verificationCheckInterval) {
+            clearInterval(verificationCheckInterval);
+        }
+
+        // Check every 30 seconds
+        verificationCheckInterval = setInterval(async () => {
+            if (!currentUser || currentUser.kyc_verified) {
+                clearInterval(verificationCheckInterval);
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/verification/status/`, {
+                    credentials: 'include'
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+
+                    // If just got approved, refresh profile and show success message
+                    if (data.kyc_verified && !currentUser.kyc_verified) {
+                        currentUser.kyc_verified = true;
+                        saveCurrentUser(currentUser);
+
+                        showToast('🎉 Congratulations! Your verification has been approved!', 'success');
+
+                        // Refresh profile data to show badge
+                        await refreshUserProfile();
+                        if (typeof loadProfileData === 'function') {
+                            await loadProfileData();
+                        }
+
+                        // Stop checking
+                        clearInterval(verificationCheckInterval);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking verification status:', error);
+            }
+        }, 30000); // Check every 30 seconds
     }
 
     async function loadStaffDashboardStats() {
@@ -1948,6 +2085,13 @@
     let currentChatPartner = null;
     let messagePollingInterval = null;
 
+    // Message Polling Strategy:
+    // - Poll every 15 seconds (reduced from 5s to minimize server load)
+    // - Only poll when tab is visible (using document.hidden check)
+    // - Stop polling when leaving messages section
+    // - Immediate refresh when sending a message
+    // This balances real-time updates with server resource efficiency
+
     async function loadConversations() {
         try {
             const res = await fetch(`${API_BASE}/messages/conversations/`, {
@@ -1967,30 +2111,32 @@
     }
 
     function renderConversations(conversations) {
-        const container = document.querySelector('.conversation-list');
+        const container = document.getElementById('conversation-list');
         if (!container) return;
 
         if (conversations.length === 0) {
-            container.innerHTML = '<p class="empty-state" style="padding: 2rem; text-align: center; color: #94a3b8;">No conversations yet. Hire staff to start chatting!</p>';
+            container.innerHTML = `
+                <p class="empty-state" style="padding: 2rem; text-align: center; color: #999;">
+                    <i class="fas fa-comments" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                    No messages yet
+                </p>
+            `;
 
-            // Clear chat area
-            const chatArea = document.querySelector('.chat-area');
-            if (chatArea) {
-                const chatMessages = chatArea.querySelector('.chat-messages');
-                if (chatMessages) {
-                    chatMessages.innerHTML = '<p class="empty-state">Select a conversation to start chatting</p>';
-                }
-            }
+            // Hide chat area and show no-chat-selected message
+            const chatArea = document.getElementById('chat-area');
+            const noChatSelected = document.getElementById('no-chat-selected');
+            if (chatArea) chatArea.style.display = 'none';
+            if (noChatSelected) noChatSelected.style.display = 'flex';
             return;
         }
 
         container.innerHTML = conversations.map((conv, index) => {
             const partner = conv.partner;
-            const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(partner.username)}&background=${index % 2 === 0 ? '6366f1' : '10b981'}&color=fff`;
+            const avatarUrl = partner.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(partner.username)}&background=${index % 2 === 0 ? '6366f1' : '10b981'}&color=fff`;
             const isActive = currentChatPartner && currentChatPartner.id === partner.id;
 
             return `
-                <div class="conversation-item ${isActive ? 'active' : ''}" onclick="openChatModal(${partner.id}, '${escapeHtml(partner.username)}', '${avatarUrl}')" data-partner-id="${partner.id}">
+                <div class="conversation-item ${isActive ? 'active' : ''}" onclick="selectConversation(${partner.id}, '${escapeHtml(partner.username)}', '${avatarUrl}')" data-partner-id="${partner.id}">
                     <img src="${avatarUrl}" alt="${escapeHtml(partner.username)}">
                     <div class="conversation-info">
                         <h4>${escapeHtml(partner.username)}</h4>
@@ -2002,7 +2148,7 @@
         }).join('');
     }
 
-    window.openChat = async function (partnerId, partnerName, avatarUrl) {
+    window.selectConversation = async function (partnerId, partnerName, avatarUrl) {
         currentChatPartner = { id: partnerId, username: partnerName, avatar: avatarUrl };
 
         // Update active conversation
@@ -2011,26 +2157,37 @@
         });
         document.querySelector(`.conversation-item[data-partner-id="${partnerId}"]`)?.classList.add('active');
 
+        // Show chat area and hide no-chat-selected
+        const chatArea = document.getElementById('chat-area');
+        const noChatSelected = document.getElementById('no-chat-selected');
+        if (chatArea) chatArea.style.display = 'flex';
+        if (noChatSelected) noChatSelected.style.display = 'none';
+
         // Update chat header
-        const chatHeader = document.querySelector('.chat-header');
-        if (chatHeader) {
-            chatHeader.innerHTML = `
-                <img src="${avatarUrl}" alt="${escapeHtml(partnerName)}">
-                <div>
-                    <h4>${escapeHtml(partnerName)}</h4>
-                    <p style="color: #22c55e; font-size: 0.85rem;"><i class="fas fa-circle" style="font-size: 0.5rem;"></i> Active</p>
-                </div>
-            `;
-        }
+        const chatOrganizerAvatar = document.getElementById('chat-organizer-avatar');
+        const chatOrganizerName = document.getElementById('chat-organizer-name');
+        if (chatOrganizerAvatar) chatOrganizerAvatar.src = avatarUrl;
+        if (chatOrganizerName) chatOrganizerName.textContent = partnerName;
 
         // Load messages for this conversation
         await loadChatMessages(partnerId);
 
-        // Start polling for new messages
+        // Start polling for new messages (optimized interval)
         if (messagePollingInterval) {
             clearInterval(messagePollingInterval);
         }
-        messagePollingInterval = setInterval(() => loadChatMessages(partnerId, true), 3000);
+        // Poll every 15 seconds instead of 5 to reduce server load
+        messagePollingInterval = setInterval(() => {
+            // Only poll if the page is visible
+            if (!document.hidden) {
+                loadChatMessages(partnerId, true);
+            }
+        }, 15000);
+    };
+
+    window.openChat = async function (partnerId, partnerName, avatarUrl) {
+        // Use selectConversation for consistency
+        await selectConversation(partnerId, partnerName, avatarUrl);
     };
 
     async function loadChatMessages(partnerId, silent = false) {
@@ -2051,7 +2208,7 @@
     }
 
     function renderChatMessages(messages, silent = false) {
-        const container = document.querySelector('.chat-messages');
+        const container = document.getElementById('messages-display');
         if (!container) return;
 
         if (messages.length === 0) {
@@ -2076,9 +2233,7 @@
         if (wasScrolledToBottom || !silent) {
             container.scrollTop = container.scrollHeight;
         }
-    }
-
-    function formatTime(isoString) {
+    } function formatTime(isoString) {
         const date = new Date(isoString);
         const now = new Date();
         const diffMs = now - date;
@@ -2093,8 +2248,76 @@
         return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
     }
 
+    // Send message function
+    window.sendMessage = async function () {
+        const messageInput = document.getElementById('message-input');
+        if (!messageInput) return;
+
+        const text = messageInput.value.trim();
+        if (!text || !currentChatPartner) {
+            if (!currentChatPartner) {
+                showToast('Please select a conversation first', 'warning');
+            }
+            return;
+        }
+
+        if (!currentUser) {
+            showToast('Please log in to send messages', 'warning');
+            return;
+        }
+
+        try {
+            const res = await fetch(`${API_BASE}/messages/send/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({
+                    recipient_id: currentChatPartner.id,
+                    message: text
+                })
+            });
+
+            if (res.ok) {
+                messageInput.value = '';
+                await loadChatMessages(currentChatPartner.id);
+                await loadConversations();
+            } else {
+                const data = await res.json();
+                showToast(data.error || 'Failed to send message', 'error');
+            }
+        } catch (err) {
+            console.error('Failed to send message:', err);
+            showToast('Failed to send message', 'error');
+        }
+    };
+
     // Initialize chat input functionality
     function initChatInput() {
+        const chatInput = document.getElementById('message-input');
+        const chatButton = document.querySelector('.chat-input button');
+
+        if (!chatInput || !chatButton) return;
+
+        // Handle Enter key
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Button is already wired via onclick in HTML
+    }
+
+    // Call initChatInput when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initChatInput);
+    } else {
+        initChatInput();
+    }
+
+    // Initialize chat input functionality (OLD - for backward compatibility)
+    function initChatInputOld() {
         const chatInput = document.querySelector('.chat-input input');
         const chatButton = document.querySelector('.chat-input button');
 
@@ -2121,7 +2344,7 @@
                     credentials: 'include',
                     body: JSON.stringify({
                         recipient_id: currentChatPartner.id,
-                        text: text
+                        message: text
                     })
                 });
 
@@ -2194,6 +2417,17 @@
             clearInterval(messagePollingInterval);
             messagePollingInterval = null;
             currentChatPartner = null;
+        }
+    });
+
+    // Pause polling when tab is hidden, resume when visible
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden && messagePollingInterval) {
+            // Don't stop completely, just let the interval handle it
+            console.log('Tab hidden - polling will pause automatically');
+        } else if (!document.hidden && currentChatPartner && window.location.hash.includes('messages')) {
+            // Tab visible again - force immediate refresh
+            loadChatMessages(currentChatPartner.id, true);
         }
     });
 
@@ -2300,8 +2534,9 @@
             navUserName.textContent = currentUser.username || 'User';
         }
 
+        // Use profile picture if available, otherwise use UI Avatars placeholder
         const profileImages = document.querySelectorAll('.profile-image-large, .user-avatar img, .nav-user img, .profile-header img');
-        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=6366f1&color=fff`;
+        const avatarUrl = currentUser.profile_picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.username || 'User')}&background=6366f1&color=fff`;
         profileImages.forEach(img => {
             img.src = avatarUrl;
             img.alt = currentUser.username;
@@ -2386,7 +2621,136 @@
         if (welcomeUser && welcomeUser.textContent.includes('Welcome')) {
             welcomeUser.textContent = `Welcome back, ${currentUser.username}! 👋`;
         }
+
+        // Load verification status if on staff portal
+        if (document.getElementById('verification-status-container')) {
+            await loadVerificationStatus();
+        }
     }
+
+    // Load and display verification status
+    async function loadVerificationStatus() {
+        if (!currentUser) return;
+
+        try {
+            const response = await fetch(`${API_BASE}/verification/status/`, {
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                updateVerificationUI(data);
+            }
+        } catch (error) {
+            console.error('Error loading verification status:', error);
+        }
+    }
+
+    // Update verification UI elements
+    function updateVerificationUI(data) {
+        const kycItem = document.getElementById('kyc-verification-item');
+        const kycStatusText = document.getElementById('kyc-status-text');
+        const kycActionBtn = document.getElementById('kyc-action-btn');
+        const policeItem = document.getElementById('police-verification-item');
+        const policeStatusText = document.getElementById('police-status-text');
+        const policeActionBtn = document.getElementById('police-action-btn');
+        const videoItem = document.getElementById('video-verification-item');
+        const videoStatusText = document.getElementById('video-status-text');
+
+        // Update KYC/Police Verification Status (same verification)
+        if (data.kyc_verified || (data.has_verification && data.verification.status === 'approved')) {
+            // Approved
+            if (kycItem) {
+                kycItem.className = 'verification-item completed';
+                kycItem.querySelector('i').className = 'fas fa-check-circle';
+            }
+            if (policeItem) {
+                policeItem.className = 'verification-item completed';
+                policeItem.querySelector('i').className = 'fas fa-check-circle';
+            }
+
+            const verifiedDate = data.verification?.verified_at ? formatDate(data.verification.verified_at) : 'Recently';
+            if (kycStatusText) kycStatusText.textContent = `Verified on ${verifiedDate}`;
+            if (policeStatusText) policeStatusText.textContent = `Verified on ${verifiedDate}`;
+
+            if (kycActionBtn) kycActionBtn.style.display = 'none';
+            if (policeActionBtn) policeActionBtn.style.display = 'none';
+
+        } else if (data.has_verification && data.verification.status === 'pending') {
+            // Pending
+            if (kycItem) {
+                kycItem.className = 'verification-item pending';
+                kycItem.querySelector('i').className = 'fas fa-clock';
+            }
+            if (policeItem) {
+                policeItem.className = 'verification-item pending';
+                policeItem.querySelector('i').className = 'fas fa-clock';
+            }
+
+            if (kycStatusText) kycStatusText.textContent = 'Pending admin approval';
+            if (policeStatusText) policeStatusText.textContent = 'Pending admin approval';
+
+            if (kycActionBtn) {
+                kycActionBtn.textContent = 'View Status';
+                kycActionBtn.style.display = 'inline-block';
+            }
+            if (policeActionBtn) {
+                policeActionBtn.textContent = 'View Status';
+                policeActionBtn.style.display = 'inline-block';
+            }
+
+        } else if (data.has_verification && data.verification.status === 'rejected') {
+            // Rejected
+            if (kycItem) {
+                kycItem.className = 'verification-item pending';
+                kycItem.querySelector('i').className = 'fas fa-exclamation-circle';
+            }
+            if (policeItem) {
+                policeItem.className = 'verification-item pending';
+                policeItem.querySelector('i').className = 'fas fa-exclamation-circle';
+            }
+
+            if (kycStatusText) kycStatusText.textContent = 'Rejected - Resubmit required';
+            if (policeStatusText) policeStatusText.textContent = 'Rejected - Resubmit required';
+
+            if (kycActionBtn) {
+                kycActionBtn.textContent = 'Resubmit';
+                kycActionBtn.style.display = 'inline-block';
+            }
+            if (policeActionBtn) {
+                policeActionBtn.textContent = 'Resubmit';
+                policeActionBtn.style.display = 'inline-block';
+            }
+
+        } else {
+            // Not submitted
+            if (kycStatusText) kycStatusText.textContent = 'Not verified - Complete verification to unlock more jobs';
+            if (policeStatusText) policeStatusText.textContent = 'Optional - Increases trust and job opportunities';
+
+            if (kycActionBtn) {
+                kycActionBtn.textContent = 'Start Verification';
+                kycActionBtn.style.display = 'inline-block';
+            }
+            if (policeActionBtn) {
+                policeActionBtn.textContent = 'Start Verification';
+                policeActionBtn.style.display = 'inline-block';
+            }
+        }
+
+        // Update video verification status
+        if (currentUser.video_verified) {
+            if (videoItem) {
+                videoItem.className = 'verification-item completed';
+                videoItem.querySelector('i').className = 'fas fa-check-circle';
+            }
+            if (videoStatusText) videoStatusText.textContent = 'Video uploaded and verified';
+        } else {
+            if (videoStatusText) videoStatusText.textContent = 'Not uploaded - Optional';
+        }
+    }
+
+    // Make globally accessible
+    window.loadVerificationStatus = loadVerificationStatus;
 
     // ============ HELPER FUNCTIONS ============
     function escapeHtml(text) {
@@ -4473,8 +4837,11 @@
 
     // ============ VERIFICATION MODAL FUNCTIONS ============
     window.showVerificationModal = async function () {
-        // Check verification status first
+        // Check verification status first and refresh profile
         try {
+            // Refresh profile to get latest KYC status
+            await refreshUserProfile();
+
             const response = await fetch(`${API_BASE}/verification/status/`, {
                 credentials: 'include'
             });
@@ -4482,17 +4849,25 @@
             if (response.ok) {
                 const data = await response.json();
 
+                // Update currentUser with latest KYC status from response
+                if (currentUser && data.kyc_verified !== undefined) {
+                    currentUser.kyc_verified = data.kyc_verified;
+                    saveCurrentUser(currentUser);
+                }
+
                 if (data.has_verification) {
                     const verification = data.verification;
 
                     if (verification.status === 'approved') {
-                        showToast('You are already verified!', 'success');
+                        showToast('✅ You are already verified!', 'success');
+                        // Refresh profile data to show badge
+                        await loadProfileData();
                         return;
                     } else if (verification.status === 'pending') {
-                        showToast('Your verification is pending review. Please wait for admin approval.', 'info');
+                        showToast('⏳ Your verification is pending review. Please wait for admin approval.', 'info');
                         return;
                     } else if (verification.status === 'rejected') {
-                        showToast(`Your previous verification was rejected: ${verification.rejection_reason}. You can submit again.`, 'warning');
+                        showToast(`❌ Your previous verification was rejected: ${verification.rejection_reason || 'No reason provided'}. You can submit again.`, 'warning');
                     }
                 }
             }
@@ -4668,6 +5043,17 @@
 
     window.showBankDetailsModal = function () {
         const modal = document.getElementById('bank-details-modal');
+
+        // Pre-fill bank details if they exist
+        if (currentUser) {
+            document.getElementById('bank-account-holder').value = currentUser.bank_account_holder || '';
+            document.getElementById('bank-account-number').value = currentUser.bank_account_number || '';
+            document.getElementById('bank-account-number-confirm').value = currentUser.bank_account_number || '';
+            document.getElementById('bank-ifsc-code').value = currentUser.bank_ifsc_code || '';
+            document.getElementById('bank-name').value = currentUser.bank_name || '';
+            document.getElementById('bank-branch').value = currentUser.bank_branch || '';
+        }
+
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
     };
@@ -4720,6 +5106,10 @@
 
             if (response.ok) {
                 showToast(data.message || 'Bank details saved successfully!', 'success');
+
+                // Refresh user profile to get updated bank details
+                await refreshUserProfile();
+
                 closeBankDetailsModal();
 
                 // Clear form
@@ -4813,9 +5203,18 @@
             if (res.ok) {
                 showToast(data.message, 'success');
                 closePhotoModal();
-                const userAvatar = document.getElementById('user-avatar');
-                if (userAvatar && data.photo_url) {
-                    userAvatar.src = data.photo_url;
+
+                // Store photo in memory only (not localStorage to avoid quota issues)
+                if (currentUser && data.photo_url) {
+                    currentUser.profile_picture = data.photo_url;
+                }
+
+                // Update all avatar images immediately
+                if (data.photo_url) {
+                    const profileImages = document.querySelectorAll('.profile-image-large, .user-avatar img, .nav-user img, .profile-header img, #user-avatar, #organizer-profile-image');
+                    profileImages.forEach(img => {
+                        img.src = data.photo_url;
+                    });
                 }
             } else {
                 showToast(data.error || 'Upload failed', 'error');
@@ -5542,9 +5941,20 @@
             const data = await response.json();
 
             if (response.ok) {
+                // Store photo in memory only (not localStorage to avoid quota issues)
+                if (currentUser && data.photo_url) {
+                    currentUser.profile_picture = data.photo_url;
+                }
+
                 if (data.photo_url) {
                     if (profileImage) profileImage.src = data.photo_url;
                     if (userAvatar) userAvatar.src = data.photo_url;
+
+                    // Update all profile images on the page
+                    const allProfileImages = document.querySelectorAll('.profile-image-large, .user-avatar img, .nav-user img, .profile-header img, #organizer-profile-image');
+                    allProfileImages.forEach(img => {
+                        img.src = data.photo_url;
+                    });
                 }
                 showToast('Profile photo updated successfully!', 'success');
             } else {
@@ -6089,6 +6499,38 @@ window.closeChatModal = function () {
     if (partnerIdInput) partnerIdInput.value = '';
 };
 
+// Navigate to messages section with current conversation
+window.goToMessagesSection = function () {
+    const partnerIdInput = document.getElementById('chat-partner-id');
+    const partnerNameEl = document.getElementById('chat-partner-name');
+    const partnerAvatarEl = document.getElementById('chat-partner-avatar');
+
+    if (!partnerIdInput || !partnerIdInput.value) return;
+
+    const partnerId = partnerIdInput.value;
+    const partnerName = partnerNameEl ? partnerNameEl.textContent : 'User';
+    const partnerAvatar = partnerAvatarEl ? partnerAvatarEl.src : '';
+
+    // Close the modal
+    closeChatModal();
+
+    // Navigate to messages section
+    window.location.hash = '#messages';
+
+    // Wait for section to load, then open the conversation
+    setTimeout(async () => {
+        // Load conversations first
+        await loadConversations();
+
+        // Select the conversation
+        if (typeof selectConversation === 'function') {
+            await selectConversation(partnerId, partnerName, partnerAvatar);
+        } else if (typeof window.openChat === 'function') {
+            await window.openChat(partnerId, partnerName, partnerAvatar);
+        }
+    }, 300);
+};
+
 // Load chat messages
 async function loadChatMessages(partnerId) {
     try {
@@ -6200,7 +6642,7 @@ window.sendChatMessage = async function (event) {
             },
             body: JSON.stringify({
                 recipient_id: partnerId,
-                text: text
+                message: text
             })
         });
 

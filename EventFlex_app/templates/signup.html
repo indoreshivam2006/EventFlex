@@ -99,25 +99,124 @@
                         <label>City</label>
                         <div class="input-group">
                             <i class="fas fa-map-marker-alt"></i>
-                            <select name="city" required>
-                                <option value="">Select your city</option>
-                                <option value="mumbai">Mumbai</option>
-                                <option value="delhi">Delhi</option>
-                                <option value="bangalore">Bangalore</option>
-                                <option value="pune">Pune</option>
-                                <option value="hyderabad">Hyderabad</option>
-                                <option value="chennai">Chennai</option>
-                                <option value="kolkata">Kolkata</option>
-                                <option value="ahmedabad">Ahmedabad</option>
-                            </select>
+                            <input type="text" name="city" id="city-input" placeholder="Type your city name..." required
+                                autocomplete="off" list="indian-cities">
+                            <datalist id="indian-cities">
+                                <!-- Metro Cities -->
+                                <option value="Mumbai">
+                                <option value="Delhi">
+                                <option value="Bangalore">
+                                <option value="Hyderabad">
+                                <option value="Ahmedabad">
+                                <option value="Chennai">
+                                <option value="Kolkata">
+                                <option value="Pune">
+                                    <!-- Tier 1 Cities -->
+                                <option value="Surat">
+                                <option value="Jaipur">
+                                <option value="Lucknow">
+                                <option value="Kanpur">
+                                <option value="Nagpur">
+                                <option value="Indore">
+                                <option value="Thane">
+                                <option value="Bhopal">
+                                <option value="Visakhapatnam">
+                                <option value="Pimpri-Chinchwad">
+                                <option value="Patna">
+                                <option value="Vadodara">
+                                <option value="Ghaziabad">
+                                <option value="Ludhiana">
+                                <option value="Agra">
+                                <option value="Nashik">
+                                <option value="Faridabad">
+                                <option value="Meerut">
+                                <option value="Rajkot">
+                                <option value="Kalyan-Dombivali">
+                                <option value="Vasai-Virar">
+                                <option value="Varanasi">
+                                <option value="Srinagar">
+                                <option value="Aurangabad">
+                                <option value="Dhanbad">
+                                <option value="Amritsar">
+                                <option value="Navi Mumbai">
+                                <option value="Allahabad (Prayagraj)">
+                                <option value="Ranchi">
+                                <option value="Howrah">
+                                <option value="Coimbatore">
+                                <option value="Jabalpur">
+                                <option value="Gwalior">
+                                <option value="Vijayawada">
+                                <option value="Jodhpur">
+                                <option value="Madurai">
+                                <option value="Raipur">
+                                <option value="Kota">
+                                <option value="Chandigarh">
+                                <option value="Guwahati">
+                                <option value="Solapur">
+                                <option value="Hubli-Dharwad">
+                                <option value="Mysore">
+                                <option value="Tiruchirappalli">
+                                <option value="Bareilly">
+                                <option value="Aligarh">
+                                <option value="Tiruppur">
+                                <option value="Gurgaon">
+                                <option value="Moradabad">
+                                <option value="Jalandhar">
+                                <option value="Bhubaneswar">
+                                <option value="Salem">
+                                <option value="Warangal">
+                                <option value="Mira-Bhayandar">
+                                <option value="Thiruvananthapuram">
+                                <option value="Bhiwandi">
+                                <option value="Saharanpur">
+                                <option value="Guntur">
+                                <option value="Amravati">
+                                <option value="Bikaner">
+                                <option value="Noida">
+                                <option value="Jamshedpur">
+                                <option value="Bhilai">
+                                <option value="Cuttack">
+                                <option value="Firozabad">
+                                <option value="Kochi">
+                                <option value="Nellore">
+                                <option value="Bhavnagar">
+                                <option value="Dehradun">
+                                <option value="Durgapur">
+                                <option value="Asansol">
+                                <option value="Rourkela">
+                                <option value="Nanded">
+                                <option value="Kolhapur">
+                                <option value="Ajmer">
+                                <option value="Akola">
+                                <option value="Gulbarga">
+                                <option value="Jamnagar">
+                                <option value="Ujjain">
+                                <option value="Loni">
+                                <option value="Siliguri">
+                                <option value="Jhansi">
+                                <option value="Ulhasnagar">
+                                <option value="Jammu">
+                                <option value="Sangli-Miraj">
+                                <option value="Mangalore">
+                                <option value="Erode">
+                                <option value="Belgaum">
+                                <option value="Ambattur">
+                                <option value="Tirunelveli">
+                                <option value="Malegaon">
+                                <option value="Gaya">
+                                <option value="Jalgaon">
+                                <option value="Udaipur">
+                                <option value="Maheshtala">
+                            </datalist>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label class="checkbox-label">
                             <input type="checkbox" required>
-                            <span>I agree to the <a href="#" class="link">Terms of Service</a> and <a href="#"
-                                    class="link">Privacy Policy</a></span>
+                            <span>I agree to the <a href="{% url 'terms_page' %}" class="link" target="_blank">Terms of
+                                    Service</a> and <a href="{% url 'privacy_policy_page' %}" class="link"
+                                    target="_blank">Privacy Policy</a></span>
                         </label>
                     </div>
 

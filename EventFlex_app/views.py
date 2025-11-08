@@ -1,4 +1,4 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
@@ -10,6 +10,7 @@ import json
 import re
 from datetime import datetime
 from decimal import Decimal
+from functools import wraps
 
 
 def safe_isoformat(value):
@@ -21,6 +22,47 @@ def safe_isoformat(value):
 	if hasattr(value, 'isoformat'):
 		return value.isoformat()
 	return str(value)
+
+
+def require_user_type(user_type):
+	"""
+	Decorator to protect views based on user type (role-based access control)
+	
+	Usage:
+		@require_user_type('organizer')
+		def organizer_dashboard_view(request):
+			...
+	"""
+	def decorator(view_func):
+		@wraps(view_func)
+		def wrapped_view(request, *args, **kwargs):
+			# Check if user is authenticated
+			if not request.user.is_authenticated:
+				return redirect('login_page')
+			
+			try:
+				profile = UserProfile.objects.get(user=request.user)
+				
+				# Check if user has the correct role
+				if profile.user_type != user_type:
+					# Wrong dashboard - redirect to correct one based on their actual role
+					if profile.user_type == 'organizer':
+						return redirect('organizer_dashboard')
+					elif profile.user_type == 'staff':
+						return redirect('staff_portal')
+					else:
+						return redirect('login_page')
+				
+				# User has correct role - allow access
+				return view_func(request, *args, **kwargs)
+				
+			except UserProfile.DoesNotExist:
+				# No profile found - logout and redirect to login
+				logout(request)
+				return redirect('login_page')
+		
+		return wrapped_view
+	return decorator
 
 
 def index_view(request):
@@ -60,13 +102,15 @@ def signup_page_view(request):
 	return render(request, 'signup.html', context)
 
 
+@require_user_type('staff')
 def staff_portal_view(request):
-	"""Staff portal dashboard"""
+	"""Staff portal dashboard - Protected: Only Event Pros can access"""
 	return render(request, 'staff-portal.html')
 
 
+@require_user_type('organizer')
 def organizer_dashboard_view(request):
-	"""Organizer dashboard"""
+	"""Organizer dashboard - Protected: Only Event Organizers can access"""
 	return render(request, 'organizer-dashboard.html')
 
 
@@ -591,6 +635,7 @@ def _profile_to_dict(profile: UserProfile):
 		'city': profile.city,
 		'phone': profile.phone,
 		'bio': profile.bio,
+		'profile_picture': profile.profile_picture,
 		'kyc_verified': profile.kyc_verified,
 		'video_verified': profile.video_verified,
 		'badge': profile.badge,
@@ -598,6 +643,11 @@ def _profile_to_dict(profile: UserProfile):
 		'average_rating': str(profile.average_rating),
 		'total_reviews': profile.total_reviews,
 		'total_events_completed': profile.total_events_completed,
+		'bank_account_holder': profile.bank_account_holder,
+		'bank_account_number': profile.bank_account_number,
+		'bank_ifsc_code': profile.bank_ifsc_code,
+		'bank_name': profile.bank_name,
+		'bank_branch': profile.bank_branch,
 	}
 
 
@@ -815,6 +865,7 @@ def job_detail(request, job_id):
 
 @csrf_exempt
 def apply_job(request, job_id):
+	"""Apply to a job - PROTECTED: Staff only"""
 	if request.method != 'POST':
 		return JsonResponse({'error': 'POST required'}, status=400)
 
@@ -832,6 +883,10 @@ def apply_job(request, job_id):
 	try:
 		user = User.objects.get(username=username)
 		profile = UserProfile.objects.get(user=user)
+		
+		# Role protection: Only staff can apply to jobs
+		if profile.user_type != 'staff':
+			return JsonResponse({'error': 'Only Event Pros (staff) can apply to jobs'}, status=403)
 	except User.DoesNotExist:
 		return JsonResponse({'error': 'user not found'}, status=404)
 	except UserProfile.DoesNotExist:
@@ -883,6 +938,18 @@ def apply_job(request, job_id):
 
 
 def talent_list(request):
+	"""Browse talent/staff - PROTECTED: Organizers only"""
+	# Role protection: Only organizers can browse talent
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'Authentication required'}, status=401)
+	
+	try:
+		profile = UserProfile.objects.get(user=request.user)
+		if profile.user_type != 'organizer':
+			return JsonResponse({'error': 'Only Event Organizers can browse talent'}, status=403)
+	except UserProfile.DoesNotExist:
+		return JsonResponse({'error': 'Profile not found'}, status=404)
+	
 	profiles = UserProfile.objects.filter(user_type='staff')[:50]
 	data = [_profile_to_dict(p) for p in profiles]
 	return JsonResponse({'results': data})
@@ -891,6 +958,18 @@ def talent_list(request):
 def profile_detail(request, pk):
 	profile = get_object_or_404(UserProfile, id=pk)
 	return JsonResponse(_profile_to_dict(profile))
+
+
+def my_profile(request):
+	"""Get current authenticated user's profile"""
+	if not request.user.is_authenticated:
+		return JsonResponse({'error': 'authentication required'}, status=401)
+	
+	try:
+		profile = UserProfile.objects.get(user=request.user)
+		return JsonResponse({'profile': _profile_to_dict(profile)})
+	except UserProfile.DoesNotExist:
+		return JsonResponse({'error': 'profile not found'}, status=404)
 
 
 @csrf_exempt
@@ -933,6 +1012,7 @@ def register_view(request):
 	user_type = payload.get('user_type', 'staff')
 	phone = payload.get('phone', '')
 	city = payload.get('city', '')
+	full_name = payload.get('full_name', '')  # Optional full name field
 
 	if not username or not password:
 		return JsonResponse({'error': 'username and password required'}, status=400)
@@ -940,13 +1020,28 @@ def register_view(request):
 	if User.objects.filter(username=username).exists():
 		return JsonResponse({'error': 'username taken'}, status=400)
 
-	# Create user and profile with all signup data
+	# Create user with auto-populated first and last name from username
 	user = User.objects.create_user(username=username, email=email, password=password)
+	
+	# Auto-populate first_name and last_name from username or full_name
+	name_parts = (full_name or username).split(' ', 1)
+	user.first_name = name_parts[0][:30]  # Django first_name max_length=30
+	user.last_name = name_parts[1][:150] if len(name_parts) > 1 else ''  # last_name max_length=150
+	user.save()
+	
+	# Create profile with auto-filled data from signup
+	default_bio = ''
+	if user_type == 'organizer':
+		default_bio = f"Event organizer from {city or 'India'}. Looking forward to collaborating with talented event professionals!"
+	else:
+		default_bio = f"Event professional from {city or 'India'}. Ready to deliver exceptional service for your events!"
+	
 	profile = UserProfile.objects.create(
 		user=user, 
 		user_type=user_type, 
 		city=city,
-		phone=phone
+		phone=phone,
+		bio=default_bio  # Auto-filled bio based on user type
 	)
 	
 	# Generate JWT tokens
@@ -1673,10 +1768,11 @@ def send_message(request):
 		return JsonResponse({'error': 'invalid JSON'}, status=400)
 	
 	recipient_id = payload.get('recipient_id')
-	text = payload.get('text', '').strip()
+	# Accept both 'text' and 'message' for backward compatibility
+	text = payload.get('text', '').strip() or payload.get('message', '').strip()
 	
 	if not recipient_id or not text:
-		return JsonResponse({'error': 'recipient_id and text required'}, status=400)
+		return JsonResponse({'error': 'recipient_id and text/message required'}, status=400)
 	
 	try:
 		recipient_profile = UserProfile.objects.get(id=recipient_id)
@@ -1915,15 +2011,43 @@ def upload_profile_photo(request):
 		profile = UserProfile.objects.get(user=request.user)
 		
 		if 'photo' in request.FILES:
+			# Read and encode the uploaded file as base64
+			import base64
+			photo_file = request.FILES['photo']
+			photo_data = photo_file.read()
+			photo_base64 = base64.b64encode(photo_data).decode('utf-8')
+			
+			# Determine the file type
+			content_type = photo_file.content_type
+			if not content_type:
+				# Try to detect from filename
+				if photo_file.name.lower().endswith('.png'):
+					content_type = 'image/png'
+				elif photo_file.name.lower().endswith(('.jpg', '.jpeg')):
+					content_type = 'image/jpeg'
+				elif photo_file.name.lower().endswith('.gif'):
+					content_type = 'image/gif'
+				else:
+					content_type = 'image/jpeg'  # default
+			
+			# Create data URL
+			photo_url = f"data:{content_type};base64,{photo_base64}"
+			
+			# Save to profile
+			profile.profile_picture = photo_url
+			profile.save()
+			
 			return JsonResponse({
 				'success': True,
 				'message': 'Profile photo updated successfully',
-				'photo_url': 'https://ui-avatars.com/api/?name=' + request.user.username
+				'photo_url': photo_url
 			})
 		else:
 			return JsonResponse({'error': 'No photo provided'}, status=400)
 	except UserProfile.DoesNotExist:
 		return JsonResponse({'error': 'profile not found'}, status=404)
+	except Exception as e:
+		return JsonResponse({'error': str(e)}, status=500)
 
 
 @csrf_exempt

@@ -62,6 +62,7 @@ class VerificationDocumentAdmin(admin.ModelAdmin):
 	search_fields = ('user__user__username', 'full_name', 'document_number')
 	list_filter = ('status', 'document_type', 'gender', 'submitted_at')
 	readonly_fields = ('submitted_at', 'updated_at')
+	actions = ['approve_verification', 'reject_verification']
 	
 	fieldsets = (
 		('User Information', {
@@ -83,6 +84,41 @@ class VerificationDocumentAdmin(admin.ModelAdmin):
 			'fields': ('submitted_at', 'updated_at')
 		}),
 	)
+	
+	def approve_verification(self, request, queryset):
+		"""Approve selected verification requests and update user KYC status"""
+		from django.utils import timezone
+		
+		count = 0
+		for verification in queryset.filter(status='pending'):
+			verification.status = 'approved'
+			verification.verified_by = request.user
+			verification.verified_at = timezone.now()
+			verification.save()
+			
+			# Update UserProfile KYC status
+			user_profile = verification.user
+			user_profile.kyc_verified = True
+			user_profile.save()
+			
+			count += 1
+		
+		self.message_user(request, f'{count} verification(s) approved successfully and KYC status updated.')
+	approve_verification.short_description = "✅ Approve selected verifications"
+	
+	def reject_verification(self, request, queryset):
+		"""Reject selected verification requests"""
+		count = queryset.filter(status='pending').update(
+			status='rejected',
+			verified_by=request.user
+		)
+		self.message_user(request, f'{count} verification(s) rejected.')
+	reject_verification.short_description = "❌ Reject selected verifications"
+	
+	def get_queryset(self, request):
+		"""Show pending verifications first"""
+		qs = super().get_queryset(request)
+		return qs.order_by('-status', '-submitted_at')  # pending first, then by date
 
 
 @admin.register(Review)

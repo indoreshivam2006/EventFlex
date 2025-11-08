@@ -259,7 +259,13 @@
                     <div class="wallet-card primary">
                         <h3>Available Balance</h3>
                         <p class="amount" id="available-balance">₹0</p>
-                        <button class="btn-primary" onclick="showWithdrawModal()">Withdraw to Bank</button>
+                        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                            <button class="btn-primary" onclick="showWithdrawModal()" style="flex: 1;">Withdraw to
+                                Bank</button>
+                            <button class="btn-outline" onclick="showBankDetailsModal()" style="flex: 1;">
+                                <i class="fas fa-edit"></i> Edit Bank Details
+                            </button>
+                        </div>
                     </div>
                     <div class="wallet-card">
                         <h3>Pending Payments</h3>
@@ -308,54 +314,38 @@
                             <i class="fas fa-search"></i>
                             <input type="text" placeholder="Search conversations...">
                         </div>
-                        <div class="conversation-list">
-                            <div class="conversation-item active">
-                                <img src="https://ui-avatars.com/api/?name=TechEvents+India&background=6366f1&color=fff"
-                                    alt="TechEvents India">
-                                <div class="conversation-info">
-                                    <h4>TechEvents India</h4>
-                                    <p>Looking forward to the event...</p>
-                                </div>
-                                <span class="time">5m</span>
-                            </div>
-                            <div class="conversation-item">
-                                <img src="https://ui-avatars.com/api/?name=Corporate+Solutions&background=10b981&color=fff"
-                                    alt="Corporate Solutions">
-                                <div class="conversation-info">
-                                    <h4>Corporate Solutions</h4>
-                                    <p>Please arrive 30 minutes early</p>
-                                </div>
-                                <span class="time">2h</span>
-                            </div>
+                        <div class="conversation-list" id="conversation-list">
+                            <!-- Conversations will be loaded here dynamically -->
+                            <p class="empty-state" style="padding: 2rem; text-align: center; color: #999;">
+                                <i class="fas fa-comments"
+                                    style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                                No messages yet
+                            </p>
                         </div>
                     </div>
-                    <div class="chat-area">
-                        <div class="chat-header">
-                            <img src="https://ui-avatars.com/api/?name=TechEvents+India&background=6366f1&color=fff"
-                                alt="TechEvents India">
+                    <div class="chat-area" id="chat-area" style="display: none;">
+                        <div class="chat-header" id="chat-header">
+                            <img src="" alt="" id="chat-organizer-avatar">
                             <div>
-                                <h4>TechEvents India</h4>
-                                <p>Event Organizer</p>
+                                <h4 id="chat-organizer-name"></h4>
+                                <p id="chat-organizer-role">Event Organizer</p>
                             </div>
                         </div>
-                        <div class="chat-messages">
-                            <div class="message received">
-                                <p>Hi Priya! Welcome to the team. The event is on Nov 15th.</p>
-                                <span class="time">Yesterday</span>
-                            </div>
-                            <div class="message sent">
-                                <p>Thank you! I'm excited to be part of it.</p>
-                                <span class="time">Yesterday</span>
-                            </div>
-                            <div class="message received">
-                                <p>Great! Looking forward to working with you.</p>
-                                <span class="time">5 minutes ago</span>
-                            </div>
+                        <div class="chat-messages" id="messages-display">
+                            <!-- Messages will be loaded here dynamically -->
                         </div>
                         <div class="chat-input">
-                            <input type="text" placeholder="Type a message...">
-                            <button class="btn-primary"><i class="fas fa-paper-plane"></i></button>
+                            <input type="text" id="message-input" placeholder="Type a message...">
+                            <button class="btn-primary" onclick="sendMessage()"><i
+                                    class="fas fa-paper-plane"></i></button>
                         </div>
+                    </div>
+                    <div class="chat-area" id="no-chat-selected"
+                        style="display: flex; align-items: center; justify-content: center; flex-direction: column; color: #999;">
+                        <i class="fas fa-envelope-open-text"
+                            style="font-size: 5rem; margin-bottom: 1rem; opacity: 0.5;"></i>
+                        <h3>Select a conversation</h3>
+                        <p>Choose a conversation from the left to view messages</p>
                     </div>
                 </div>
             </section>
@@ -417,10 +407,113 @@
                         <div class="form-group">
                             <label>City *</label>
                             <select name="city">
-                                <option value="mumbai" selected>Mumbai</option>
-                                <option value="delhi">Delhi</option>
-                                <option value="bangalore">Bangalore</option>
-                                <option value="pune">Pune</option>
+                                <option value="">Select your city</option>
+                                <!-- Metro Cities -->
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Bangalore">Bangalore</option>
+                                <option value="Hyderabad">Hyderabad</option>
+                                <option value="Ahmedabad">Ahmedabad</option>
+                                <option value="Chennai">Chennai</option>
+                                <option value="Kolkata">Kolkata</option>
+                                <option value="Pune">Pune</option>
+                                <!-- Tier 1 Cities -->
+                                <option value="Surat">Surat</option>
+                                <option value="Jaipur">Jaipur</option>
+                                <option value="Lucknow">Lucknow</option>
+                                <option value="Kanpur">Kanpur</option>
+                                <option value="Nagpur">Nagpur</option>
+                                <option value="Indore">Indore</option>
+                                <option value="Thane">Thane</option>
+                                <option value="Bhopal">Bhopal</option>
+                                <option value="Visakhapatnam">Visakhapatnam</option>
+                                <option value="Pimpri-Chinchwad">Pimpri-Chinchwad</option>
+                                <option value="Patna">Patna</option>
+                                <option value="Vadodara">Vadodara</option>
+                                <option value="Ghaziabad">Ghaziabad</option>
+                                <option value="Ludhiana">Ludhiana</option>
+                                <option value="Agra">Agra</option>
+                                <option value="Nashik">Nashik</option>
+                                <option value="Faridabad">Faridabad</option>
+                                <option value="Meerut">Meerut</option>
+                                <option value="Rajkot">Rajkot</option>
+                                <option value="Kalyan-Dombivali">Kalyan-Dombivali</option>
+                                <option value="Vasai-Virar">Vasai-Virar</option>
+                                <option value="Varanasi">Varanasi</option>
+                                <option value="Srinagar">Srinagar</option>
+                                <option value="Aurangabad">Aurangabad</option>
+                                <option value="Dhanbad">Dhanbad</option>
+                                <option value="Amritsar">Amritsar</option>
+                                <option value="Navi Mumbai">Navi Mumbai</option>
+                                <option value="Allahabad">Allahabad (Prayagraj)</option>
+                                <option value="Ranchi">Ranchi</option>
+                                <option value="Howrah">Howrah</option>
+                                <option value="Coimbatore">Coimbatore</option>
+                                <option value="Jabalpur">Jabalpur</option>
+                                <option value="Gwalior">Gwalior</option>
+                                <option value="Vijayawada">Vijayawada</option>
+                                <option value="Jodhpur">Jodhpur</option>
+                                <option value="Madurai">Madurai</option>
+                                <option value="Raipur">Raipur</option>
+                                <option value="Kota">Kota</option>
+                                <option value="Chandigarh">Chandigarh</option>
+                                <option value="Guwahati">Guwahati</option>
+                                <option value="Solapur">Solapur</option>
+                                <option value="Hubli-Dharwad">Hubli-Dharwad</option>
+                                <option value="Mysore">Mysore</option>
+                                <option value="Tiruchirappalli">Tiruchirappalli</option>
+                                <option value="Bareilly">Bareilly</option>
+                                <option value="Aligarh">Aligarh</option>
+                                <option value="Tiruppur">Tiruppur</option>
+                                <option value="Gurgaon">Gurgaon</option>
+                                <option value="Moradabad">Moradabad</option>
+                                <option value="Jalandhar">Jalandhar</option>
+                                <option value="Bhubaneswar">Bhubaneswar</option>
+                                <option value="Salem">Salem</option>
+                                <option value="Warangal">Warangal</option>
+                                <option value="Mira-Bhayandar">Mira-Bhayandar</option>
+                                <option value="Thiruvananthapuram">Thiruvananthapuram</option>
+                                <option value="Bhiwandi">Bhiwandi</option>
+                                <option value="Saharanpur">Saharanpur</option>
+                                <option value="Guntur">Guntur</option>
+                                <option value="Amravati">Amravati</option>
+                                <option value="Bikaner">Bikaner</option>
+                                <option value="Noida">Noida</option>
+                                <option value="Jamshedpur">Jamshedpur</option>
+                                <option value="Bhilai">Bhilai</option>
+                                <option value="Cuttack">Cuttack</option>
+                                <option value="Firozabad">Firozabad</option>
+                                <option value="Kochi">Kochi</option>
+                                <option value="Nellore">Nellore</option>
+                                <option value="Bhavnagar">Bhavnagar</option>
+                                <option value="Dehradun">Dehradun</option>
+                                <option value="Durgapur">Durgapur</option>
+                                <option value="Asansol">Asansol</option>
+                                <option value="Rourkela">Rourkela</option>
+                                <option value="Nanded">Nanded</option>
+                                <option value="Kolhapur">Kolhapur</option>
+                                <option value="Ajmer">Ajmer</option>
+                                <option value="Akola">Akola</option>
+                                <option value="Gulbarga">Gulbarga</option>
+                                <option value="Jamnagar">Jamnagar</option>
+                                <option value="Ujjain">Ujjain</option>
+                                <option value="Loni">Loni</option>
+                                <option value="Siliguri">Siliguri</option>
+                                <option value="Jhansi">Jhansi</option>
+                                <option value="Ulhasnagar">Ulhasnagar</option>
+                                <option value="Jammu">Jammu</option>
+                                <option value="Sangli-Miraj">Sangli-Miraj</option>
+                                <option value="Mangalore">Mangalore</option>
+                                <option value="Erode">Erode</option>
+                                <option value="Belgaum">Belgaum</option>
+                                <option value="Ambattur">Ambattur</option>
+                                <option value="Tirunelveli">Tirunelveli</option>
+                                <option value="Malegaon">Malegaon</option>
+                                <option value="Gaya">Gaya</option>
+                                <option value="Jalgaon">Jalgaon</option>
+                                <option value="Udaipur">Udaipur</option>
+                                <option value="Maheshtala">Maheshtala</option>
+                                <option value="Other">Other</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -475,28 +568,40 @@
                         </div>
 
                         <h3>Verification</h3>
-                        <div class="verification-status">
-                            <div class="verification-item completed">
-                                <i class="fas fa-check-circle"></i>
+                        <div class="verification-status" id="verification-status-container">
+                            <!-- KYC Verification - Dynamic -->
+                            <div class="verification-item" id="kyc-verification-item">
+                                <i class="fas fa-clock"></i>
                                 <div>
                                     <h4>KYC Verification</h4>
-                                    <p>Verified on Oct 15, 2025</p>
+                                    <p id="kyc-status-text">Not verified</p>
                                 </div>
+                                <button class="btn-outline btn-sm" onclick="showVerificationModal()"
+                                    id="kyc-action-btn">Start
+                                    Verification</button>
                             </div>
-                            <div class="verification-item completed">
-                                <i class="fas fa-check-circle"></i>
+
+                            <!-- Video Introduction - Dynamic -->
+                            <div class="verification-item" id="video-verification-item">
+                                <i class="fas fa-clock"></i>
                                 <div>
                                     <h4>Video Introduction</h4>
-                                    <p>Uploaded on Oct 20, 2025</p>
+                                    <p id="video-status-text">Not uploaded</p>
                                 </div>
+                                <button class="btn-outline btn-sm" onclick="uploadVideoIntro()" id="video-action-btn"
+                                    style="display: none;">Upload
+                                    Video</button>
                             </div>
-                            <div class="verification-item pending">
+
+                            <!-- Police Verification - Same as KYC, shows real status -->
+                            <div class="verification-item" id="police-verification-item">
                                 <i class="fas fa-clock"></i>
                                 <div>
                                     <h4>Police Verification</h4>
-                                    <p>Optional - Increases trust</p>
+                                    <p id="police-status-text">Optional - Increases trust</p>
                                 </div>
-                                <button class="btn-outline btn-sm" onclick="showVerificationModal()">Start
+                                <button class="btn-outline btn-sm" onclick="showVerificationModal()"
+                                    id="police-action-btn">Start
                                     Verification</button>
                             </div>
                         </div>

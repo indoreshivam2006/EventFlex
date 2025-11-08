@@ -15,6 +15,7 @@ class UserProfile(models.Model):
 	city = models.CharField(max_length=120, blank=True)
 	phone = models.CharField(max_length=32, blank=True)
 	bio = models.TextField(blank=True)
+	profile_picture = models.TextField(blank=True)  # Base64 encoded image
 	kyc_verified = models.BooleanField(default=False)
 	video_verified = models.BooleanField(default=False)
 	badge = models.CharField(max_length=32, choices=BADGE_LEVELS, default='rising_star')
@@ -287,6 +288,29 @@ class VerificationDocument(models.Model):
 	
 	def __str__(self):
 		return f"Verification for {self.user.user.username} - {self.status}"
+	
+	def save(self, *args, **kwargs):
+		"""Override save to auto-update UserProfile KYC status"""
+		is_new = self.pk is None
+		old_status = None
+		
+		if not is_new:
+			# Get old status before save
+			old_instance = VerificationDocument.objects.filter(pk=self.pk).first()
+			if old_instance:
+				old_status = old_instance.status
+		
+		# Call parent save
+		super().save(*args, **kwargs)
+		
+		# Update UserProfile KYC status when verification is approved
+		if self.status == 'approved' and old_status != 'approved':
+			self.user.kyc_verified = True
+			self.user.save()
+		elif self.status == 'rejected' and old_status == 'approved':
+			# If previously approved is now rejected, remove KYC status
+			self.user.kyc_verified = False
+			self.user.save()
 
 
 class Review(models.Model):
