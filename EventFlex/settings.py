@@ -2,6 +2,12 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
+# Import for database URL parsing (optional, only if DATABASE_URL is set)
+try:
+    import dj_database_url
+except ImportError:
+    dj_database_url = None
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env_path = BASE_DIR / 'EventFlex' / '.env'
@@ -58,9 +64,8 @@ WSGI_APPLICATION = 'EventFlex.wsgi.application'
 
 # Database Configuration
 # For local development, uses SQLite. For production (Vercel), uses PostgreSQL
-if os.getenv('DATABASE_URL'):
+if os.getenv('DATABASE_URL') and dj_database_url:
     # Parse DATABASE_URL for services like Vercel Postgres, Railway, etc.
-    import dj_database_url
     DATABASES = {
         'default': dj_database_url.config(
             default=os.getenv('DATABASE_URL'),
